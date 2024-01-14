@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.krmdemo.yaml</groupId>
+  <artifactId>yaml-reconcile</artifactId>
+  <version>0.1</version>
+  <packaging>jar</packaging>
+
+  <name>${project.artifactId}</name>
+  <description>Java-Library to process and reconcile data in YAML format (build and deployed with maven)</description>
+  <url>https://github.com/krm-demo/yaml-reconcile</url>
+
+  <organization>
+    <name>krm-demo/yaml-reconcile</name>
+    <url>https://github.com/krm-demo/yaml-reconcile</url>
+  </organization>
+
+  <properties>
+    <java.version>21</java.version>
+    <lombock.version>1.18.30</lombock.version>
+    <commons-io.version>2.15.1</commons-io.version>
+    <org.slf4j.version>2.0.9</org.slf4j.version>
+    <com.fasterxml.jackson.version>2.15.3</com.fasterxml.jackson.version>
+    <ch.qos.logback.version>1.4.14</ch.qos.logback.version>
+    <org.junit.jupiter.version>5.10.1</org.junit.jupiter.version>
+    <org.assertj.version>3.25.1</org.assertj.version>
+    <snakeyaml-engine.version>2.7</snakeyaml-engine.version>
+    <maven.compiler.plugin.version>3.12.1</maven.compiler.plugin.version>
+    <maven.compiler.release>${java.version}</maven.compiler.release>
+    <maven.resources.plugin.version>3.3.0</maven.resources.plugin.version>
+    <maven.jar.plugin.version>3.3.0</maven.jar.plugin.version>
+    <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
+    <maven.plugin.validation>VERBOSE</maven.plugin.validation>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>${lombock.version}</version>
+    </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${org.slf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>${commons-io.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${com.fasterxml.jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jsr310</artifactId>
+      <version>${com.fasterxml.jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.snakeyaml</groupId>
+      <artifactId>snakeyaml-engine</artifactId>
+      <version>${snakeyaml-engine.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${org.junit.jupiter.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>${org.assertj.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>${ch.qos.logback.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${maven.compiler.plugin.version}</version>
+        <configuration>
+          <release>${maven.compiler.release}</release>
+          <compilerArgument>-proc:full</compilerArgument>
+          <annotationProcessorPaths>
+            <path>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+            </path>
+          </annotationProcessorPaths>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>${maven.resources.plugin.version}</version>
+        <configuration>
+          <propertiesEncoding>${project.build.sourceEncoding}</propertiesEncoding>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>${maven.jar.plugin.version}</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <addClasspath>false</addClasspath>
+              <addBuildEnvironmentEntries>true</addBuildEnvironmentEntries>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+            </manifest>
+            <manifestEntries>
+              <Build-Date>${maven.build.timestamp}</Build-Date>
+              <Project-Group>${project.groupId}</Project-Group>
+              <Project-Org-Url>${project.organization.url}</Project-Org-Url>
+              <Project-Url>${project.url}</Project-Url>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${maven.surefire.plugin.version}</version>
+        <configuration>
+          <excludedGroups>integration-test-tag</excludedGroups>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
