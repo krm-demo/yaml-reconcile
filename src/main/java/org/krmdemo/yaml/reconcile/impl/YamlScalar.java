@@ -17,6 +17,7 @@ import static java.lang.String.format;
 import static java.lang.System.identityHashCode;
 import static java.lang.System.lineSeparator;
 import static org.apache.commons.lang3.StringUtils.countMatches;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.text.StringEscapeUtils.escapeJava;
 import static org.apache.commons.text.StringEscapeUtils.unescapeJava;
 
@@ -27,9 +28,12 @@ public class YamlScalar implements YamlNode<Node>, RepresentToNode {
     final Object scalarObj;
 
     public YamlScalar(@NonNull Object scalarObj) {
+        if (scalarObj instanceof YamlNode<?>) {
+            throw new IllegalArgumentException("origin object must not be a yaml-node");
+        }
         this.scalarObj = scalarObj;
         String scalarStr = scalarObj.toString();
-         if (scalarObj instanceof Number || scalarObj instanceof Boolean) {
+        if (scalarObj instanceof Number || scalarObj instanceof Boolean) {
             this.scalar = new ScalarNode(Tag.STR, scalarStr, ScalarStyle.PLAIN);
         } else if (countMatches(scalarStr, lineSeparator()) > 0) {
             this.scalar = new ScalarNode(Tag.STR, escapeJava(scalarStr), ScalarStyle.DOUBLE_QUOTED);
@@ -75,6 +79,9 @@ public class YamlScalar implements YamlNode<Node>, RepresentToNode {
 
     @Override
     public String toString() {
+        if (isEmpty(scalar.getValue())) {
+            return format("%s(0x%08x)", getType(), identityHashCode(this));
+        }
         ScalarStyle scalarStyle = scalar.getScalarStyle();
         String fmt = switch(scalar.getScalarStyle()) {
             case ScalarStyle.PLAIN -> "%s(0x%08x --> %s)";

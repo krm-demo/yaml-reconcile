@@ -19,8 +19,9 @@ public class YamlSequence implements YamlNode<Node>, RepresentToNode {
 
     final SequenceNode sequence;
 
-    final List<YamlNode<Node>> childrenList;
+    final List<? extends YamlNode<Node>> childrenList;
 
+    @SafeVarargs
     public YamlSequence(@NonNull YamlNode<Node>... childrenArr) {
         this(Arrays.stream(childrenArr));
     }
@@ -29,6 +30,9 @@ public class YamlSequence implements YamlNode<Node>, RepresentToNode {
         List<YamlNode<Node>> yamlList = new ArrayList<>();
         List<Node> snakeList = new ArrayList<>();
         children.forEachOrdered(yamlNode -> {
+            if (yamlNode.getType() == Type.KEY_VALUE) {
+                throw new IllegalArgumentException("key-value is not allowed in sequence");
+            }
             yamlList.add(yamlNode);
             snakeList.add(yamlNode.asOrigin());
         });
@@ -59,6 +63,9 @@ public class YamlSequence implements YamlNode<Node>, RepresentToNode {
 
     @Override
     public String toString() {
+        if (childrenList.isEmpty()) {
+            return format("%s(0x%08x - empty)", getType(), identityHashCode(this));
+        }
         StringBuilder sb = new StringBuilder(format("%s(0x%08x - %d elements):",
             getType(), identityHashCode(this), childrenList.size()));
         int maxNumLength = ("" + childrenList.size()).length();
@@ -98,7 +105,7 @@ public class YamlSequence implements YamlNode<Node>, RepresentToNode {
     }
 
     @Override
-    public Stream<YamlNode<Node>> getChildren() {
+    public Stream<? extends YamlNode<Node>> getChildren() {
         return childrenList.stream();
     }
 

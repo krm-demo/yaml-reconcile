@@ -10,8 +10,33 @@ import static java.lang.System.lineSeparator;
 import static java.util.stream.IntStream.rangeClosed;
 import static org.apache.commons.lang3.StringUtils.countMatches;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatNullPointerException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 public class ToStringTest {
+
+    @Test void testEmptyScalar() {
+        assertThatNullPointerException().isThrownBy(() -> scalar(null));
+        assertThatIllegalArgumentException().isThrownBy(() -> scalar(scalar("la-la-la")));
+        assertThat(maskId(scalar(""))).isEqualTo("SCALAR(xxxx)");
+    }
+
+    @Test void testEmptyKeyValue() {
+        assertAll("prohibited cases",
+            () -> assertThatNullPointerException().isThrownBy(() -> keyValue(null, null)),
+            () -> assertThatNullPointerException().isThrownBy(() -> keyValue("aome-key", null)),
+            () -> assertThatNullPointerException().isThrownBy(() -> keyValueScalar(null, "some-value")),
+            () -> assertThatIllegalArgumentException().isThrownBy(() -> keyValueScalar("a\b\\c", "some-value"))
+        );
+        assertThat(maskId(keyValueScalar("with-empty-scalar", "")))
+            .isEqualTo("KEY_VALUE(xxxx) ? 'with-empty-scalar' : SCALAR(xxxx)");
+        assertThat(maskId(keyValue("with-empty-sequence", sequence())))
+            .isEqualTo("KEY_VALUE(xxxx) ? 'with-empty-sequence' : SEQUENCE(xxxx - empty)");
+        assertThat(maskId(keyValue("with-empty-dictionary", dictionary())))
+            .isEqualTo("KEY_VALUE(xxxx) ? 'with-empty-dictionary' : DICTIONARY(xxxx - empty)");
+    }
 
     @Test
     void testScalar() {
@@ -92,6 +117,23 @@ public class ToStringTest {
 
     private YamlScalar scalar(Object scalarObj) {
         return new YamlScalar(scalarObj);
+    }
+
+    private YamlKeyValue keyValue(String key, YamlNode<Node> valueNode) {
+        return new YamlKeyValue(key, valueNode);
+    }
+
+    private YamlKeyValue keyValueScalar(String key, Object obj) {
+        return keyValue(key, scalar(obj));
+    }
+
+    @SafeVarargs
+    private YamlSequence sequence(YamlNode<Node>... children) {
+        return new YamlSequence(children);
+    }
+
+    private YamlDictionary dictionary(YamlKeyValue... children) {
+        return new YamlDictionary(children);
     }
 
     private static String childValueStr(YamlNode<Node> yamlNode, String childName) {

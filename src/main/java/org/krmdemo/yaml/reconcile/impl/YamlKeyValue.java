@@ -1,6 +1,8 @@
 package org.krmdemo.yaml.reconcile.impl;
 
 import lombok.NonNull;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.krmdemo.yaml.reconcile.YamlNode;
 import org.snakeyaml.engine.v2.api.RepresentToNode;
 import org.snakeyaml.engine.v2.common.ScalarStyle;
@@ -9,7 +11,6 @@ import org.snakeyaml.engine.v2.nodes.NodeTuple;
 import org.snakeyaml.engine.v2.nodes.ScalarNode;
 import org.snakeyaml.engine.v2.nodes.Tag;
 
-import java.util.*;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
@@ -22,6 +23,12 @@ public class YamlKeyValue implements YamlNode<Node>, RepresentToNode {
     final YamlNode<Node> valueNode;
 
     public YamlKeyValue(@NonNull String key, @NonNull YamlNode<Node> valueNode) {
+        if (StringUtils.isBlank(key) || !key.equals(StringEscapeUtils.escapeJava(key))) {
+            throw new IllegalArgumentException(format("invalid key (blank or contains invalid symbols) - '%s'", key));
+        }
+        if (valueNode.getType() == Type.KEY_VALUE) {
+            throw new IllegalArgumentException("nested key-value are not supported");
+        }
         ScalarNode scalarNode = new ScalarNode(Tag.STR, key, ScalarStyle.SINGLE_QUOTED);
         this.tuple = new NodeTuple(scalarNode, valueNode.asOrigin());
         this.valueNode = valueNode;
