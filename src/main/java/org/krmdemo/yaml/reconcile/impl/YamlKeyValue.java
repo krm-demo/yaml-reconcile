@@ -1,5 +1,6 @@
 package org.krmdemo.yaml.reconcile.impl;
 
+import lombok.NonNull;
 import org.krmdemo.yaml.reconcile.YamlNode;
 import org.snakeyaml.engine.v2.api.RepresentToNode;
 import org.snakeyaml.engine.v2.common.ScalarStyle;
@@ -20,7 +21,7 @@ public class YamlKeyValue implements YamlNode<Node>, RepresentToNode {
 
     final YamlNode<Node> valueNode;
 
-    public YamlKeyValue(String key, YamlNode<Node> valueNode) {
+    public YamlKeyValue(@NonNull String key, @NonNull YamlNode<Node> valueNode) {
         ScalarNode scalarNode = new ScalarNode(Tag.STR, key, ScalarStyle.SINGLE_QUOTED);
         this.tuple = new NodeTuple(scalarNode, valueNode.asOrigin());
         this.valueNode = valueNode;
@@ -41,7 +42,7 @@ public class YamlKeyValue implements YamlNode<Node>, RepresentToNode {
     }
 
     @Override
-    public Node representData(Object data) {
+    public Node representData(@NonNull Object data) {
         throw new UnsupportedOperationException("must not be invoked during representation of " + getType());
     }
 
@@ -51,7 +52,7 @@ public class YamlKeyValue implements YamlNode<Node>, RepresentToNode {
     }
 
     public String toString(int maxKeyLength) {
-        String fmt = "%s(%X %" + (maxKeyLength + 2) + "s) : %s";
+        String fmt = "%s(0x%08x %" + (maxKeyLength + 2) + "s) : %s";
         String lineFeedWithSpaces = format("%n%" + (maxKeyLength + 5) + "s", " ");  // TODO: '5' is not precise value
         String str = getValue().toString().replaceAll("\\R", lineFeedWithSpaces);
         return format(fmt, getType(), identityHashCode(this), "'" + getKey() + "'", str);
@@ -77,7 +78,7 @@ public class YamlKeyValue implements YamlNode<Node>, RepresentToNode {
     }
 
     @Override
-    public YamlNode<Node> childByName(String childName) {
+    public YamlNode<Node> childByName(@NonNull String childName) {
         throw new UnsupportedOperationException("no child by name in " + getType());
     }
 

@@ -21,6 +21,8 @@
     <java.version>21</java.version>
     <lombock.version>1.18.30</lombock.version>
     <commons-io.version>2.15.1</commons-io.version>
+    <commons-lang.version>3.14.0</commons-lang.version>
+    <commons-text.version>1.11.0</commons-text.version>
     <org.slf4j.version>2.0.9</org.slf4j.version>
     <com.fasterxml.jackson.version>2.15.3</com.fasterxml.jackson.version>
     <ch.qos.logback.version>1.4.14</ch.qos.logback.version>
@@ -60,6 +62,15 @@
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
       <version>${commons-io.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>${commons-lang.version}</version>
+    </dependency>    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-text</artifactId>
+      <version>${commons-text.version}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>

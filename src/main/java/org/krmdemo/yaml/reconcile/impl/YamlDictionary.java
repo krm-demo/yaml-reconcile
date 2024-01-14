@@ -1,5 +1,6 @@
 package org.krmdemo.yaml.reconcile.impl;
 
+import lombok.NonNull;
 import org.krmdemo.yaml.reconcile.YamlNode;
 import org.snakeyaml.engine.v2.api.RepresentToNode;
 import org.snakeyaml.engine.v2.common.FlowStyle;
@@ -51,8 +52,7 @@ public class YamlDictionary implements YamlNode<Node>, RepresentToNode {
     }
 
     @Override
-    public Node representData(Object data) {
-        Objects.requireNonNull(data, format("Representation data is null for %s", this));
+    public Node representData(@NonNull Object data) {
         if (data != this) {
             throw new IllegalStateException(format(
                 "Representation structure is corrupted: this(%X) != data(%X)",

@@ -1,5 +1,6 @@
 package org.krmdemo.yaml.reconcile.impl;
 
+import lombok.NonNull;
 import org.krmdemo.yaml.reconcile.YamlNode;
 import org.snakeyaml.engine.v2.api.RepresentToNode;
 import org.snakeyaml.engine.v2.common.FlowStyle;
@@ -20,7 +21,7 @@ public class YamlSequence implements YamlNode<Node>, RepresentToNode {
 
     final List<YamlNode<Node>> childrenList;
 
-    public YamlSequence(YamlNode<Node>... childrenArr) {
+    public YamlSequence(@NonNull YamlNode<Node>... childrenArr) {
         this(Arrays.stream(childrenArr));
     }
 
@@ -46,11 +47,11 @@ public class YamlSequence implements YamlNode<Node>, RepresentToNode {
     }
 
     @Override
-    public Node representData(Object data) {
+    public Node representData(@NonNull Object data) {
         Objects.requireNonNull(data, format("Representation data is null for %s", this));
         if (data != this) {
             throw new IllegalStateException(format(
-                "Representation structure is corrupted: %s(%X) != data(%X)",
+                "Representation structure is corrupted: %s(0x%08x) != data(0x%08x)",
                 getType(), identityHashCode(this), identityHashCode(data)));
         }
         return asOrigin();
@@ -58,14 +59,15 @@ public class YamlSequence implements YamlNode<Node>, RepresentToNode {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder(format("%s(%X - %d elements):",
+        StringBuilder sb = new StringBuilder(format("%s(0x%08x - %d elements):",
             getType(), identityHashCode(this), childrenList.size()));
         int maxNumLength = ("" + childrenList.size()).length();
         String fmt = "%n- %" + (maxNumLength + 2) + "s %s";
         for (int num = 0; num < childrenList.size(); num++) {
+            String strNum = format("(%d)", num + 1);
             YamlNode<Node> child = childrenList.get(num);
             String lineFeedWithSpaces = format("%n%" + (maxNumLength + 5) + "s", " ");
-            sb.append(format(fmt, '(' + num + ')', child.toString().replaceAll("\\R", lineFeedWithSpaces)));
+            sb.append(format(fmt, strNum, child.toString().replaceAll("\\R", lineFeedWithSpaces)));
         }
         return sb.toString();
     }

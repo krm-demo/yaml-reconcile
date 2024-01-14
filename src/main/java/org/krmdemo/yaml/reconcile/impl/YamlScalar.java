@@ -1,10 +1,13 @@
 package org.krmdemo.yaml.reconcile.impl;
 
+import lombok.NonNull;
+import org.apache.commons.text.StringEscapeUtils;
 import org.krmdemo.yaml.reconcile.YamlNode;
 import org.snakeyaml.engine.v2.api.RepresentToNode;
 import org.snakeyaml.engine.v2.common.ScalarStyle;
 import org.snakeyaml.engine.v2.nodes.Node;
 import org.snakeyaml.engine.v2.nodes.ScalarNode;
+import org.snakeyaml.engine.v2.nodes.Tag;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -14,7 +17,19 @@ import static java.lang.System.identityHashCode;
 
 public class YamlScalar implements YamlNode<Node>, RepresentToNode {
 
-    ScalarNode scalar;
+    final ScalarNode scalar;
+
+    final Object scalarObj;
+
+    public YamlScalar(@NonNull Object scalarObj) {
+        String scalarStr = StringEscapeUtils.escapeJava(scalarObj.toString());
+        ScalarStyle scalarStyle = ScalarStyle.DOUBLE_QUOTED;
+        if (scalarObj instanceof Number || scalarObj instanceof Boolean) {
+            scalarStyle = ScalarStyle.PLAIN;
+        }
+        this.scalar = new ScalarNode(Tag.STR, scalarStr, scalarStyle);
+        this.scalarObj = scalarObj;
+    }
 
     @Override
     public Type getType() {
@@ -40,9 +55,10 @@ public class YamlScalar implements YamlNode<Node>, RepresentToNode {
     @Override
     public String toString() {
         String fmt = switch(scalar.getScalarStyle()) {
-            case ScalarStyle.SINGLE_QUOTED -> "%s(%X - '%s')";
-            case ScalarStyle.DOUBLE_QUOTED -> "%s(%X - \"%s\")";
-            default -> "%s(%X," + scalar.getScalarStyle().name() + " --> %s)";
+            case ScalarStyle.PLAIN -> "%s(0x%08x --> %s)";
+            case ScalarStyle.SINGLE_QUOTED -> "%s(0x%08x --> '%s')";
+            case ScalarStyle.DOUBLE_QUOTED -> "%s(0x%08x --> \"%s\")";
+            default -> "%s(0x%08x," + scalar.getScalarStyle().name() + ") --> %s";
         };
         return format(fmt, getType(), identityHashCode(this), asString());
     }
