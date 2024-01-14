@@ -63,10 +63,14 @@ public class YamlDictionary implements YamlNode<Node>, RepresentToNode {
 
     @Override
     public String toString() {
-        String header = format("%s(%X - %d elements):", getType(), identityHashCode(this), childrenMap.size());
+        if (childrenMap.isEmpty()) {
+            return format("%s(0x%08x - empty)", getType(), identityHashCode(this));
+        }
+        String header = format("%s(0x%08x - %d elements)", getType(), identityHashCode(this), childrenMap.size());
+        String delimiter = format("%n- ");
         return childrenMap.values().stream()
             .map(keyValue -> keyValue.toString(maxKeyLength))
-            .collect(Collectors.joining("%n- ", header, ""));
+            .collect(Collectors.joining(delimiter, header + ":" + delimiter, ""));
     }
 
     @Override

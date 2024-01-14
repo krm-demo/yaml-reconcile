@@ -52,7 +52,7 @@ public class YamlKeyValue implements YamlNode<Node>, RepresentToNode {
     }
 
     public String toString(int maxKeyLength) {
-        String fmt = "%s(0x%08x %" + (maxKeyLength + 2) + "s) : %s";
+        String fmt = "%s(0x%08x) ? %" + (maxKeyLength + 2) + "s : %s";
         String lineFeedWithSpaces = format("%n%" + (maxKeyLength + 5) + "s", " ");  // TODO: '5' is not precise value
         String str = getValue().toString().replaceAll("\\R", lineFeedWithSpaces);
         return format(fmt, getType(), identityHashCode(this), "'" + getKey() + "'", str);

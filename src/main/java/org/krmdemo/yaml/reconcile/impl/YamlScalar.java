@@ -1,6 +1,7 @@
 package org.krmdemo.yaml.reconcile.impl;
 
 import lombok.NonNull;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.krmdemo.yaml.reconcile.YamlNode;
 import org.snakeyaml.engine.v2.api.RepresentToNode;
@@ -14,6 +15,10 @@ import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.lang.System.identityHashCode;
+import static java.lang.System.lineSeparator;
+import static org.apache.commons.lang3.StringUtils.countMatches;
+import static org.apache.commons.text.StringEscapeUtils.escapeJava;
+import static org.apache.commons.text.StringEscapeUtils.unescapeJava;
 
 public class YamlScalar implements YamlNode<Node>, RepresentToNode {
 
@@ -22,13 +27,29 @@ public class YamlScalar implements YamlNode<Node>, RepresentToNode {
     final Object scalarObj;
 
     public YamlScalar(@NonNull Object scalarObj) {
-        String scalarStr = StringEscapeUtils.escapeJava(scalarObj.toString());
-        ScalarStyle scalarStyle = ScalarStyle.DOUBLE_QUOTED;
-        if (scalarObj instanceof Number || scalarObj instanceof Boolean) {
-            scalarStyle = ScalarStyle.PLAIN;
-        }
-        this.scalar = new ScalarNode(Tag.STR, scalarStr, scalarStyle);
         this.scalarObj = scalarObj;
+        String scalarStr = scalarObj.toString();
+         if (scalarObj instanceof Number || scalarObj instanceof Boolean) {
+            this.scalar = new ScalarNode(Tag.STR, scalarStr, ScalarStyle.PLAIN);
+        } else if (countMatches(scalarStr, lineSeparator()) > 0) {
+            this.scalar = new ScalarNode(Tag.STR, escapeJava(scalarStr), ScalarStyle.DOUBLE_QUOTED);
+        } else {
+             this.scalar = new ScalarNode(Tag.STR, scalarStr, ScalarStyle.SINGLE_QUOTED);
+         }
+    }
+
+    public YamlScalar(@NonNull ScalarNode scalarOriginal) {
+        this.scalarObj = scalarOriginal;
+        String scalarStr = scalarObj.toString();
+        ScalarStyle scalarStyle = scalarOriginal.getScalarStyle();
+        if (countMatches(scalarStr, lineSeparator()) > 0
+                || scalarStyle == ScalarStyle.FOLDED
+                || scalarStyle == ScalarStyle.LITERAL
+                || scalarStyle == ScalarStyle.DOUBLE_QUOTED) {
+            this.scalar = new ScalarNode(Tag.STR, escapeJava(scalarStr), ScalarStyle.DOUBLE_QUOTED);
+        } else {
+            this.scalar = new ScalarNode(Tag.STR, scalarStr, scalarStyle);
+        }
     }
 
     @Override
@@ -54,18 +75,21 @@ public class YamlScalar implements YamlNode<Node>, RepresentToNode {
 
     @Override
     public String toString() {
+        ScalarStyle scalarStyle = scalar.getScalarStyle();
         String fmt = switch(scalar.getScalarStyle()) {
             case ScalarStyle.PLAIN -> "%s(0x%08x --> %s)";
-            case ScalarStyle.SINGLE_QUOTED -> "%s(0x%08x --> '%s')";
-            case ScalarStyle.DOUBLE_QUOTED -> "%s(0x%08x --> \"%s\")";
-            default -> "%s(0x%08x," + scalar.getScalarStyle().name() + ") --> %s";
+            case ScalarStyle.SINGLE_QUOTED -> "%s(0x%08x) --> '%s'";
+            case ScalarStyle.DOUBLE_QUOTED -> "%s(0x%08x) --> \"%s\"";
+            default -> throw new IllegalStateException(format(
+                "ScalarStyle was not properly detected for this(%s) - %s", identityHashCode(this), scalarStyle));
         };
-        return format(fmt, getType(), identityHashCode(this), asString());
+        return format(fmt, getType(), identityHashCode(this), scalar.getValue());
     }
 
     @Override
     public String asString() {
-        return scalar.getValue();
+        return scalar.getScalarStyle() == ScalarStyle.DOUBLE_QUOTED ?
+            unescapeJava(scalar.getValue()) : scalar.getValue();
     }
 
     @Override
