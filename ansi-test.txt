@@ -1,0 +1,7 @@
+2
+3
+888
+|--null| 23:09:19.953170 [thread=main] level=INFO o.k.y.r.t.FixedWidthLogsExecutionListener - begin of all test suites - [engine:junit-jupiter]
+testEscU = 'This is a blue fragment of text'
+|--null| 23:09:20.005306 [thread=main] level=INFO o.k.y.r.t.FixedWidthLogsExecutionListener - end of all test suites - [engine:junit-jupiter]
+23:09:20.006126 [thread=main] level=INFO o.k.y.r.t.FixedWidthLogsExecutionListener - Some mesage from JUnit Jupiter

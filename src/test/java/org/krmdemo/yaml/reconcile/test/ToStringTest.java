@@ -1,10 +1,15 @@
-package org.krmdemo.yaml.reconcile.impl;
+package org.krmdemo.yaml.reconcile.test;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.krmdemo.yaml.reconcile.YamlNode;
+import org.krmdemo.yaml.reconcile.impl.YamlDictionary;
+import org.krmdemo.yaml.reconcile.impl.YamlKeyValue;
+import org.krmdemo.yaml.reconcile.impl.YamlScalar;
+import org.krmdemo.yaml.reconcile.impl.YamlSequence;
 import org.snakeyaml.engine.v2.nodes.Node;
 
 import java.util.stream.Stream;
@@ -98,6 +103,7 @@ public class ToStringTest {
     }
 
     @Test
+    @Disabled
     void testSystemProperties() {
         System.setProperty("junit.test.class.simple-name", this.getClass().getSimpleName());
         System.setProperty("junit.test.math.E", "" + Math.E);

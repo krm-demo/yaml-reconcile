@@ -1,2 +1,4 @@
-package org.krmdemo.yaml.reconcile.test.ansi;public class AnsiColor {
+package org.krmdemo.yaml.reconcile.test.ansi;
+
+public class AnsiColor {
 }
