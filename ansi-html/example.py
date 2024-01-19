@@ -17,7 +17,14 @@ for color in ["blue", "red", "yellow"]:
 current_script_path: Path = Path(__file__)
 example_svg_file_name = f"{current_script_path.with_suffix('.svg')}"
 console.save_svg(example_svg_file_name, title=f"{current_script_path.name}")
+
+print(". . . . . . . . . . . . . . . . . . . .")
 print(f"output is captured and saved in '{example_svg_file_name}'")
+
+short_name = f"{current_script_path.with_suffix('.svg').name}"
+print(f"to insert the link to that '.svg' file '.md' document use:\n"
+      f"- either '![Alt text](../ansi-html/{short_name})'\n"
+      f"- or     '<img src=\"../ansi-html/{short_name}\">'")
 
 # os.system("which python")
 # os.system("python --version")

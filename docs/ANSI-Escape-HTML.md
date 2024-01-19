@@ -46,5 +46,4 @@ and escape-suffix: `1b 5b xx xx .. .. .. 6d` or `ESC[..m`. In the example above 
 text-styles (background, font-weight, ...) in addition to foreground color
 
 The result of executing the commands above on MacOS terminal is following:
-![Alt text](../ansi-html/red_fragment.svg)
-<img src="../ansi-html/red_fragment.svg">
+![svg-file 'red_fragment.svg'](../ansi-html/red_fragment.svg)
