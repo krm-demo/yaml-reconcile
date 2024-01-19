@@ -1,5 +1,8 @@
 # ANSI Escape Sequences and HTML format
 
+![Alt text](../ansi-html/example.svg)
+<img src="../ansi-html/example.svg">
+
 The way how text and background colors are rendered by terminal console is described 
 [here](./ANSI-Escape-Sequences.md) and in multiple articles whose links are available 
 [at the bottom](./ANSI-Escape-Sequences.md#Resources)
