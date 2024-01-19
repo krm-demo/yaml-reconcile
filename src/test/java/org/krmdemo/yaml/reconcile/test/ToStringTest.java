@@ -1,5 +1,8 @@
 package org.krmdemo.yaml.reconcile.impl;
 
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.krmdemo.yaml.reconcile.YamlNode;
 import org.snakeyaml.engine.v2.nodes.Node;
@@ -15,7 +18,18 @@ import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
+@Slf4j
 public class ToStringTest {
+
+    @BeforeEach
+    void beforeEach() {
+        log.info("starting...");
+    }
+
+    @AfterEach
+    void afterEach() {
+        log.info("finishing...");
+    }
 
     @Test void testEmptyScalar() {
         assertThatNullPointerException().isThrownBy(() -> scalar(null));
