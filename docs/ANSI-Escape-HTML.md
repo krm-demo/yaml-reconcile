@@ -1,8 +1,8 @@
 # ANSI Escape Sequences and HTML format
 
 The way how text and background colors are rendered by terminal console is described 
-[here](./ANSI-Escape-HTML.md) and in multiple articles whose links are available 
-[at the bottom](./ANSI-Escape-HTML.md#Resources)
+[here](./ANSI-Escape-Sequences.md) and in multiple articles whose links are available 
+[at the bottom](./ANSI-Escape-Sequences.md#Resources)
 
 Before using those escape sequences and capture the result of their rendering in HTML format
 we must realize the principle different between _sequence_-style approach in terminal's consoles 
