@@ -1,8 +1,5 @@
 # ANSI Escape Sequences and HTML format
 
-![Alt text](../ansi-html/example.svg)
-<img src="../ansi-html/example.svg">
-
 The way how text and background colors are rendered by terminal console is described 
 [here](./ANSI-Escape-Sequences.md) and in multiple articles whose links are available 
 [at the bottom](./ANSI-Escape-Sequences.md#Resources)
@@ -25,18 +22,13 @@ a regular utility like `cat` (at Windows a command `type` could be used instead)
 echo -e "This is a \x1b[31mred fragment\x1b[39m of text" > some-temp-file.txt
 cat some-temp-file.txt
 ```
-In both cases the output must be similar to
-<div class="note" markdown="1" style="font-family:courier; background-color:WhiteSmoke; padding:16px">
-This is a <span class="note" style="color: red">red fragment</span> of text
-</div>
-
-And the content of corresponding text-file (hexadecimal value of each character)
-will be something like following:
+In both cases the output must be a text with red fragment inside. The content of corresponding 
+text-file (hexadecimal value of each character) can be obtained with `hexdump` utility:
 <pre style="font-family:courier; background-color:WhiteSmoke; padding:16px">
-$ hexdump -C some-temp-file.txt
+... > hexdump -C some-temp-file.txt
 00000000  54 68 69 73 20 69 73 20  61 20 1b 5b 33 31 6d 72  |This is a .[31mr|
 00000010  65 64 20 66 72 61 67 6d  65 6e 74 1b 5b 33 39 6d  |ed fragment.[39m|
-00000020  20 6f 66 20 74 65 78 74  0a                       | of text.       |
+00000020  20 6f 66 20 74 65 78 74  0a                       | of text.|
 00000029
 </pre>
 
@@ -52,3 +44,7 @@ and escape-suffix: `1b 5b xx xx .. .. .. 6d` or `ESC[..m`. In the example above 
 * `ESC[39m` - stop using just recently declared foreground color and return back to using the default one
 - by the way the sequence `ESC[0m` would have quite the same effect, but it also reset to default the other 
 text-styles (background, font-weight, ...) in addition to foreground color
+
+The result of executing the commands above on MacOS terminal is following:
+![Alt text](../ansi-html/red_fragment.svg)
+<img src="../ansi-html/red_fragment.svg">

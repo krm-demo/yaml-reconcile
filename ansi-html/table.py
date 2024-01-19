@@ -5,7 +5,7 @@ Demonstrates how to render a table.
 from rich.console import Console
 from rich.table import Table
 
-table = Table(title="Star Wars Movies")
+table = Table(title="Star [bold]Wars[/bold] Movies")
 
 table.add_column("Released", style="cyan", no_wrap=True)
 table.add_column("Title", style="magenta")
