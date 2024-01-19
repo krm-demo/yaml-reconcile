@@ -35,7 +35,7 @@ text-file (hexadecimal value of each character) can be obtained with `hexdump` u
 Some other utility can be used instead of `hexdump`, but the most interesting thing here that
 the colored fragment is started with sequence of characters  `1b 5b 33 31 6d` and finished with 
 sequence `1b 5b 33 39 6d`. In technical documentation the symbol with hexadecimal value `1b`
-or decimal `27` is considered to cal _escape-symbol_ and use `ESC` term when refer to it. Subsequent
+or decimal `27` is considered to call an _escape-symbol_ and use `ESC` term when refer to it. Subsequent
 symbols after it are called _escape-sequence_. In case of terminal functions, which are responsible 
 for colors and styles of text, that sequence should be started with `[` and finished with `m`.
 So, in normal situation the user will never see anything that is surrounded with those escape-prefix 
@@ -47,3 +47,19 @@ text-styles (background, font-weight, ...) in addition to foreground color
 
 The result of executing the commands above on MacOS terminal is following:
 ![svg-file 'red_fragment.svg'](../ansi-html/red_fragment.svg)
+
+In `bash`-utilities and programming languages the characters of string literals could be represented
+in several ways - so is _escape-symbol_. It's not readable in natural way like any alpha-numeric symbols,
+it's denoted like `ESC` and has decimal integer value `27`, which is hexadecimal `1b`. In example above
+we represented it as `\x1b` as part of argument to `echo`-command, but it also could be represented as:
+- <details>
+    <summary>`\033` as octal value of one-byte symbol</summary>
+    Peek a boo!
+  </details>
+- <details>
+    <summary>
+        `\u001b` as two-byte UTF-8 symbol (this is also working in _Python_, _Java_ and other programming languages)
+    </summary>
+    Peek a boo again!
+  </details>
+- a good resource where all UTF-8 symbols are described is [here](https://design215.com/toolbox/utf8-4byte-characters.php)
