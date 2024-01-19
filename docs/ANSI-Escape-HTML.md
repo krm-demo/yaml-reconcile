@@ -23,8 +23,8 @@ echo -e "This is a \x1b[31mred fragment\x1b[39m of text" > some-temp-file.txt
 cat some-temp-file.txt
 ```
 In both cases the output must be similar to
-<div style="font-family:courier; background-color:WhiteSmoke; padding:16px">
-This is a <span style="color: red">red fragment</span> of text
+<div class="note" markdown="1" style="font-family:courier; background-color:WhiteSmoke; padding:16px">
+This is a <span class="note" style="color: red">red fragment</span> of text
 </div>
 
 And the content of corresponding text-file (hexadecimal value of each character)
