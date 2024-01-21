@@ -16,6 +16,7 @@ module org.krmdemo.yaml.reconcile.test {
     exports org.krmdemo.yaml.reconcile.test;
     opens org.krmdemo.yaml.reconcile.test to org.junit.platform.commons;
     opens org.krmdemo.yaml.reconcile.test.ansi to org.junit.platform.commons;
+    opens org.krmdemo.yaml.reconcile.test.echo to org.junit.platform.commons;
 
     uses org.junit.platform.launcher.TestExecutionListener;
     provides org.junit.platform.launcher.TestExecutionListener

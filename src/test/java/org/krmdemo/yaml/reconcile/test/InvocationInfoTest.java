@@ -44,7 +44,9 @@ public class InvocationInfoTest {
     @Test
     void testTwo() {
         log.debug("!!! this is test-two !!!");
-        fail("oops !!!");
+        if (log.isTraceEnabled()) {
+            fail("oops !!!");
+        }
     }
 
     @AfterEach

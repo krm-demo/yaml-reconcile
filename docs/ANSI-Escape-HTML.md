@@ -52,9 +52,9 @@ In `bash`-utilities and programming languages the characters of string literals 
 in several ways - so is _escape-symbol_. It's not readable in natural way like any alpha-numeric symbols,
 it's denoted like `ESC` and has decimal integer value `27`, which is hexadecimal `1b`. In example above
 we represented it as `\x1b` as part of argument to `echo`-command, but it also could be represented as:
-- <details>
+- <details> octal value of one-byte symbol
     <summary>`\033` as octal value of one-byte symbol</summary>
-    Peek a boo!
+    `\033` represents one-byte unicode character with octal value '
   </details>
 - <details>
     <summary>

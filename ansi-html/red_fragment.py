@@ -33,3 +33,15 @@ console.save_svg(red_fragment_svg_file_name, title=red_fragment_title)
 print(f"output is captured and saved in '{red_fragment_svg_file_name}'")
 
 # echo "System.out.println(\"$JAVA_HOME\");" | jshell --feedback concise | sed -n '2p'
+
+# 1019 [Fri Jan 19 12:55:28] alekseykurmanov@Alekseys-MBP:~/my/projects/git-hub/yaml-reconcile $python
+# Python 3.11.6 (main, Nov  2 2023, 04:39:43) [Clang 14.0.3 (clang-1403.0.22.14.1)] on darwin
+# Type "help", "copyright", "credits" or "license" for more information.
+# >>> print('This is \x1b[31mred fragment\x1b[39m of text')
+# This is red fragment of text
+# >>> print('This is \033[31mred fragment\033[39m of text')
+# This is red fragment of text
+# >>> print('This is \u001b[31mred fragment\u001b[39m of text')
+# This is red fragment of text
+# >>> ^D
+

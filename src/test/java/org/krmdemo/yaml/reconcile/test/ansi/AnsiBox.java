@@ -1,9 +1,9 @@
 package org.krmdemo.yaml.reconcile.test.ansi;
 
-import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
+import java.util.function.Supplier;
 
 /**
  * Wrap the text to ansi-characters to output the rectangular block of specified border and background.
@@ -17,217 +17,348 @@ import java.util.*;
  * @see <a href="https://github.com/Textualize/rich/blob/master/rich/box.py">...rich/box.py</a> for the source code
  * @see <a href="https://github.com/Textualize/rich/blob/master/examples/table.py">...rich/examples/table.py</a> for a sample usage
  */
-public enum AnsiBox {
+public class AnsiBox {
 
-    ASCII (new String[] {
-        "+--+",
-        "| ||",
-        "|-+|",
-        "| ||",
-        "|-+|",
-        "|-+|",
-        "| ||",
-        "+--+",
-    }, true),
+    public interface Style {
 
-    ASCII2 (new String[] {
-        "+-++",
-        "| ||",
-        "+-++",
-        "| ||",
-        "+-++",
-        "+-++",
-        "| ||",
-        "+-++",
-    }, true),
+        default boolean isAscii() { return true; }
 
-    ASCII_DOUBLE_HEAD (new String[] {
-        "+-++",
-        "| ||",
-        "+=++",
-        "| ||",
-        "+-++",
-        "+-++",
-        "| ||",
-        "+-++",
-    }, true),
+        default Optional<String> top() { return Optional.empty(); }
+        default Optional<String> head() { return Optional.empty(); }
+        default Optional<String> headRow() { return Optional.empty(); }
+        default Optional<String> mid() { return Optional.empty(); }
+        default Optional<String> row() { return Optional.empty(); }
+        default Optional<String> footRow() { return Optional.empty(); }
+        default Optional<String> foot() { return Optional.empty(); }
+        default Optional<String> bottom() { return Optional.empty(); }
 
-    SQUARE (new String[] {
-        "┌─┬┐",
-        "│ ││",
-        "├─┼┤",
-        "│ ││",
-        "├─┼┤",
-        "├─┼┤",
-        "│ ││",
-        "└─┴┘",
-    }),
+        default String left(Supplier<Optional<String>> borderHorizontalLine) {
+            return borderHorizontalLine.get()
+                .map(str -> String.valueOf(str.charAt(0)))
+                .orElse("");
+        }
 
-    SQUARE_DOUBLE_HEAD (new String[] {
-        "┌─┬┐",
-        "│ ││",
-        "╞═╪╡",
-        "│ ││",
-        "├─┼┤",
-        "├─┼┤",
-        "│ ││",
-        "└─┴┘",
-    }),
+        default String pad(Supplier<Optional<String>> borderHorizontalLine) {
+            return borderHorizontalLine.get()
+                .map(str -> String.valueOf(str.charAt(1)))
+                .orElse("");
+        }
 
-    MINIMAL (new String[] {
-        "  ╷ ",
-        "  │ ",
-        "╶─┼╴",
-        "  │ ",
-        "╶─┼╴",
-        "╶─┼╴",
-        "  │ ",
-        "  ╵ ",
-    }),
+        default String connect(Supplier<Optional<String>> borderHorizontalLine) {
+            return borderHorizontalLine.get()
+                .map(str -> String.valueOf(str.charAt(2)))
+                .orElse("");
+        }
 
-    MINIMAL_HEAVY_HEAD (new String[] {
-        "  ╷ ",
-        "  │ ",
-        "╺━┿╸",
-        "  │ ",
-        "╶─┼╴",
-        "╶─┼╴",
-        "  │ ",
-        "  ╵ ",
-    }),
+        default String right(Supplier<Optional<String>> borderHorizontalLine) {
+            return borderHorizontalLine.get()
+                .map(str -> String.valueOf(str.charAt(3)))
+                .orElse("");
+        }
 
-    MINIMAL_DOUBLE_HEAD (new String[] {
-        "  ╷ ",
-        "  │ ",
-        " ═╪ ",
-        "  │ ",
-        " ─┼ ",
-        " ─┼ ",
-        "  │ ",
-        "  ╵ ",
-    }),
+        default String borderTop(int width) {
+            return left(this::top) + StringUtils.repeat(pad(this::top), width) + right(this::top);
+        }
 
-    SIMPLE (new String[] {
-        "    ",
-        "    ",
-        " ── ",
-        "    ",
-        "    ",
-        " ── ",
-        "    ",
-        "    ",
-    }),
+        default String borderBottom(int width) {
+            return left(this::top) + StringUtils.repeat(pad(this::top), width) + right(this::top);
+        }
+    }
 
-    SIMPLE_HEAD (new String[] {
-        "    ",
-        "    ",
-        " ── ",
-        "    ",
-        "    ",
-        "    ",
-        "    ",
-        "    ",
-    }),
+    public enum StyleKind implements Style {
+        ASCII (new String[] {
+            "+--+",
+            "| ||",
+            "|-+|",
+            "| ||",
+            "|-+|",
+            "|-+|",
+            "| ||",
+            "+--+",
+        }, true),
 
-    SIMPLE_HEAVY (new String[] {
-        "    ",
-        "    ",
-        " ━━ ",
-        "    ",
-        "    ",
-        " ━━ ",
-        "    ",
-        "    ",
-    }),
+        ASCII2 (new String[] {
+            "+-++",
+            "| ||",
+            "+-++",
+            "| ||",
+            "+-++",
+            "+-++",
+            "| ||",
+            "+-++",
+        }, true),
 
-    HORIZONTALS (new String[] {
-        " ── ",
-        "    ",
-        " ── ",
-        "    ",
-        " ── ",
-        " ── ",
-        "    ",
-        " ── ",
-    }),
+        ASCII_DOUBLE_HEAD (new String[] {
+            "+-++",
+            "| ||",
+            "+=++",
+            "| ||",
+            "+-++",
+            "+-++",
+            "| ||",
+            "+-++",
+        }, true),
 
-    ROUNDED (new String[] {
-        "╭─┬╮",
-        "│ ││",
-        "├─┼┤",
-        "│ ││",
-        "├─┼┤",
-        "├─┼┤",
-        "│ ││",
-        "╰─┴╯",
-    }),
+        SQUARE (new String[] {
+            "┌─┬┐",
+            "│ ││",
+            "├─┼┤",
+            "│ ││",
+            "├─┼┤",
+            "├─┼┤",
+            "│ ││",
+            "└─┴┘",
+        }),
 
-    HEAVY (new String[] {
-        "┏━┳┓",
-        "┃ ┃┃",
-        "┣━╋┫",
-        "┃ ┃┃",
-        "┣━╋┫",
-        "┣━╋┫",
-        "┃ ┃┃",
-        "┗━┻┛",
-    }),
+        SQUARE_DOUBLE_HEAD (new String[] {
+            "┌─┬┐",
+            "│ ││",
+            "╞═╪╡",
+            "│ ││",
+            "├─┼┤",
+            "├─┼┤",
+            "│ ││",
+            "└─┴┘",
+        }),
 
-    HEAVY_EDGE (new String[] {
-        "┏━┯┓",
-        "┃ │┃",
-        "┠─┼┨",
-        "┃ │┃",
-        "┠─┼┨",
-        "┠─┼┨",
-        "┃ │┃",
-        "┗━┷┛",
-    }),
+        MINIMAL (new String[] {
+            "  ╷ ",
+            "  │ ",
+            "╶─┼╴",
+            "  │ ",
+            "╶─┼╴",
+            "╶─┼╴",
+            "  │ ",
+            "  ╵ ",
+        }),
 
-    HEAVY_HEAD (new String[] {
-        "┏━┳┓",
-        "┃ ┃┃",
-        "┡━╇┩",
-        "│ ││",
-        "├─┼┤",
-        "├─┼┤",
-        "│ ││",
-        "└─┴┘",
-    }),
+        MINIMAL_HEAVY_HEAD (new String[] {
+            "  ╷ ",
+            "  │ ",
+            "╺━┿╸",
+            "  │ ",
+            "╶─┼╴",
+            "╶─┼╴",
+            "  │ ",
+            "  ╵ ",
+        }),
 
-    DOUBLE (new String[] {
-        "╔═╦╗",
-        "║ ║║",
-        "╠═╬╣",
-        "║ ║║",
-        "╠═╬╣",
-        "╠═╬╣",
-        "║ ║║",
-        "╚═╩╝",
-    }),
+        MINIMAL_DOUBLE_HEAD (new String[] {
+            "  ╷ ",
+            "  │ ",
+            " ═╪ ",
+            "  │ ",
+            " ─┼ ",
+            " ─┼ ",
+            "  │ ",
+            "  ╵ ",
+        }),
 
-    DOUBLE_EDGE (new String[] {
-        "╔═╤╗",
-        "║ │║",
-        "╟─┼╢",
-        "║ │║",
-        "╟─┼╢",
-        "╟─┼╢",
-        "║ │║",
-        "╚═╧╝",
-    }),
+        SIMPLE (new String[] {
+            "    ",
+            "    ",
+            " ── ",
+            "    ",
+            "    ",
+            " ── ",
+            "    ",
+            "    ",
+        }),
 
-    MARKDOWN (new String[] {
-        "    ",
-        "| ||",
-        "|-||",
-        "| ||",
-        "|-||",
-        "|-||",
-        "| ||",
-        "    ",
-    }, true);
+        SIMPLE_HEAD (new String[] {
+            "    ",
+            "    ",
+            " ── ",
+            "    ",
+            "    ",
+            "    ",
+            "    ",
+            "    ",
+        }),
 
+        SIMPLE_HEAVY (new String[] {
+            "    ",
+            "    ",
+            " ━━ ",
+            "    ",
+            "    ",
+            " ━━ ",
+            "    ",
+            "    ",
+        }),
+
+        HORIZONTALS (new String[] {
+            " ── ",
+            "    ",
+            " ── ",
+            "    ",
+            " ── ",
+            " ── ",
+            "    ",
+            " ── ",
+        }),
+
+        ROUNDED (new String[] {
+            "╭─┬╮",
+            "│ ││",
+            "├─┼┤",
+            "│ ││",
+            "├─┼┤",
+            "├─┼┤",
+            "│ ││",
+            "╰─┴╯",
+        }),
+
+        HEAVY (new String[] {
+            "┏━┳┓",
+            "┃ ┃┃",
+            "┣━╋┫",
+            "┃ ┃┃",
+            "┣━╋┫",
+            "┣━╋┫",
+            "┃ ┃┃",
+            "┗━┻┛",
+        }),
+
+        HEAVY_EDGE (new String[] {
+            "┏━┯┓",
+            "┃ │┃",
+            "┠─┼┨",
+            "┃ │┃",
+            "┠─┼┨",
+            "┠─┼┨",
+            "┃ │┃",
+            "┗━┷┛",
+        }),
+
+        HEAVY_HEAD (new String[] {
+            "┏━┳┓",
+            "┃ ┃┃",
+            "┡━╇┩",
+            "│ ││",
+            "├─┼┤",
+            "├─┼┤",
+            "│ ││",
+            "└─┴┘",
+        }),
+
+        DOUBLE (new String[] {
+            "╔═╦╗",
+            "║ ║║",
+            "╠═╬╣",
+            "║ ║║",
+            "╠═╬╣",
+            "╠═╬╣",
+            "║ ║║",
+            "╚═╩╝",
+        }),
+
+        DOUBLE_EDGE (new String[] {
+            "╔═╤╗",
+            "║ │║",
+            "╟─┼╢",
+            "║ │║",
+            "╟─┼╢",
+            "╟─┼╢",
+            "║ │║",
+            "╚═╧╝",
+        }),
+
+        MARKDOWN (new String[] {
+            "    ",
+            "| ||",
+            "|-||",
+            "| ||",
+            "|-||",
+            "|-||",
+            "| ||",
+            "    ",
+        }, true);
+
+        String[] THICK_INNER = new String[] {
+            "▄▄▄▄",  // "▁▁▁▁"
+            "█ ┃█",  // "▌ ┃▐
+            "█━╋█",
+            "█ ┃█",
+            "█━╋█",
+            "█━╋█",
+            "█ ┃█",  // "▌ ┃▐"
+            "▀▀▀▀",  // "▔▔▔▔
+        };
+
+        String[] THICK_OUTER = new String[] {
+            "▄▀▀▄",  // "█▀▀█"  // "▛▀▀▜"  // "▞▔▔▚"  // "▞▀▀▚"
+            "█  █",  // "█  █"  // "▌  ▐"
+            "█━┳█",  //  ....
+            "█ ┃█",  //  ....
+            "█━╋█",  //  ....
+            "█━┻█",  //  ....
+            "█  █",  //  ....
+            "▀▄▄▀",  // "█▄▄█"
+        };
+
+        @Override
+        public boolean isAscii() { return this.ascii; }
+
+        public Optional<String>  top() { return Optional.of(boxLines[0]); }
+        public Optional<String>  head() { return Optional.of(boxLines[1]); }
+        public Optional<String>  headRow() { return Optional.of(boxLines[2]); }
+        public Optional<String>  mid() { return Optional.of(boxLines[3]); }
+        public Optional<String>  row() { return Optional.of(boxLines[4]); }
+        public Optional<String>  footRow() { return Optional.of(boxLines[5]); }
+        public Optional<String>  foot() { return Optional.of(boxLines[6]); }
+        public Optional<String>  bottom() { return Optional.of(boxLines[7]); }
+
+        /**
+         * Default to non-ascii box.
+         *
+         * @param boxLines characters making up box.
+         */
+        StyleKind(String[] boxLines) {
+            this(boxLines, false);
+        }
+
+        /**
+         * Defines characters to render boxes:<pre>
+         *   ┌─┬┐ top
+         *   │ ││ head
+         *   ├─┼┤ head_row
+         *   │ ││ mid
+         *   ├─┼┤ row
+         *   ├─┼┤ foot_row
+         *   │ ││ foot
+         *   └─┴┘ bottom
+         * </pre>
+         * @param boxLines characters making up box.
+         * @param ascii <code>true</code> if this box uses ascii characters only.
+         */
+        StyleKind(String[] boxLines, boolean ascii) {
+            if (boxLines.length != 8) {
+                throw new IllegalArgumentException("there must be exactly 8 box-lines");
+            }
+            this.boxLines = boxLines;
+            this.ascii = ascii;
+        }
+
+        private final String[] boxLines;
+        private final boolean ascii;
+    }
+
+    public enum Horizontal {
+        LEFT,
+
+        CENTER,
+
+        RIGHT
+    };
+
+    public enum Vertical {
+        TOP,
+        MIDDLE,
+        BOTTOM
+    }
+
+    public static final Style EMPTY_BORDER = new Style(){};
 
     public static final int MAX_HEIGHT = 10_000;
 
@@ -235,140 +366,7 @@ public enum AnsiBox {
 
     public static final int DEFAULT_WIDTH = 24;
 
-    public String top() { return boxLines[0]; }
-    public String head() { return boxLines[1]; }
-    public String headRow() { return boxLines[2]; }
-    public String mid() { return boxLines[3]; }
-    public String row() { return boxLines[3]; }
-    public String footRow() { return boxLines[4]; }
-    public String foot() { return boxLines[5]; }
-    public String bottom() { return boxLines[6]; }
+    private Horizontal horizontal;
 
-    private final String[] boxLines;
-    private final boolean ascii;
-
-    /**
-     * Default to non-ascii box.
-     *
-     * @param boxLines characters making up box.
-     */
-    AnsiBox(String[] boxLines) {
-        this(boxLines, false);
-    }
-
-    /**
-     * Defines characters to render boxes:<pre>
-     *   ┌─┬┐ top
-     *   │ ││ head
-     *   ├─┼┤ head_row
-     *   │ ││ mid
-     *   ├─┼┤ row
-     *   ├─┼┤ foot_row
-     *   │ ││ foot
-     *   └─┴┘ bottom
-     * </pre>
-     * @param boxLines characters making up box.
-     * @param ascii <code>true</code> if this box uses ascii characters only.
-     */
-    AnsiBox(String[] boxLines, boolean ascii) {
-        if (boxLines.length != 8) {
-            throw new IllegalArgumentException("there must be exactly 8 box-lines");
-    }
-        this.boxLines = boxLines;
-        this.ascii = ascii;
-    }
-
-    public Builder builder() {
-        return new Builder(this);
-    }
-
-    public static class RenderableBox {
-
-        private final AnsiBox ansiBox;
-
-        private final int width;
-
-        private boolean skipTopBorder;
-        private boolean skipLeftBorder;
-        private boolean skipRightBorder;
-        private boolean skipBottomBorder;
-
-        private List<String> contentLines = new ArrayList<>();
-
-        private List<String> columnHeaders = new ArrayList();
-
-        private RenderableBox(AnsiBox ansiBox, int width) {
-            this.ansiBox = ansiBox;
-            this.width = width;
-        }
-
-        public String render() {
-            StringBuilder sb = new StringBuilder();
-            if (!skipTopBorder) {
-                if (!skipLeftBorder) {
-                    sb.append(ansiBox.top().charAt(0));
-                }
-                sb.append(StringUtils.repeat(ansiBox.top().charAt(1), width));
-            }
-            return sb.toString();
-        }
-    }
-
-    public static class Builder {
-
-        private final AnsiBox ansiBox;
-
-        private Integer width = null;
-
-        private boolean skipTopBorder;
-        private boolean skipLeftBorder;
-        private boolean skipRightBorder;
-        private boolean skipBottomBorder;
-
-        private List<String> contentLines = new ArrayList<>();
-
-        private List<String> columnHeaders = new ArrayList();
-
-        private Builder(AnsiBox ansiBox) {
-            this.ansiBox = ansiBox;
-        }
-
-        public RenderableBox build() {
-            RenderableBox box = new RenderableBox(ansiBox, effectiveWidth());
-            box.contentLines = this.contentLines;
-            box.columnHeaders = this.columnHeaders;
-            return box;
-        }
-
-        public Builder setWidth(int width) {
-            this.width = width;
-            return this;
-        }
-
-        public Optional<Integer> getWidth() {
-            return Optional.ofNullable(width);
-        }
-
-        public int effectiveWidth() {
-            return getWidth().orElse(contentLines.stream()
-                .map(String::length)
-                .max(Integer::compareTo)
-                .orElse(DEFAULT_WIDTH));
-        }
-    }
-
-    public void appendCharInt(int charInt) {
-
-    }
-
-    public void appendCharEsc(Character c) {
-     }
-
-    public void appendString(String str) {
-
-    }
-
-    public void appendLine(String line) {
-
-    }
+    private Vertical vertical;
 }
