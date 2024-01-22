@@ -20,6 +20,7 @@
   <properties>
     <java.version>21</java.version>
     <lombock.version>1.18.30</lombock.version>
+    <org.antlr.version>4.13.1</org.antlr.version>
     <commons-io.version>2.15.1</commons-io.version>
     <commons-lang.version>3.14.0</commons-lang.version>
     <commons-text.version>1.11.0</commons-text.version>
@@ -55,6 +56,12 @@
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.antlr</groupId>
+      <artifactId>antlr4-runtime</artifactId>
+      <version>${org.antlr.version}</version>
+    </dependency>
+
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
@@ -125,6 +132,19 @@
 
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.antlr</groupId>
+        <artifactId>antlr4-maven-plugin</artifactId>
+        <version>${org.antlr.version}</version>
+        <executions>
+          <execution>
+            <id>antlr</id>
+            <goals>
+              <goal>antlr4</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>

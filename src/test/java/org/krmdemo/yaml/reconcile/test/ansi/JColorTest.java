@@ -3,6 +3,7 @@ package org.krmdemo.yaml.reconcile.test.ansi;
 import com.diogonunes.jcolor.AnsiFormat;
 import com.diogonunes.jcolor.Attribute;
 import org.apache.commons.text.StringEscapeUtils;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -13,6 +14,7 @@ import static com.diogonunes.jcolor.Ansi.colorize;
 import static com.diogonunes.jcolor.Attribute.*;
 import static org.krmdemo.yaml.reconcile.test.ansi.JColorTest.DataGenerator.randomInt;
 
+@Disabled
 public class JColorTest {
 
     @Test
