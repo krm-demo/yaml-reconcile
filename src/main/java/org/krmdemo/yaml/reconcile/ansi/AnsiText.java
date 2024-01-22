@@ -7,6 +7,15 @@ import static java.lang.String.format;
 @Slf4j
 public class AnsiText {
 
+    public static class Span {
+
+    }
+
+
+    public static class Line {
+
+    }
+
     private final Listener listener = new Listener();
 
     public Listener listener() {
