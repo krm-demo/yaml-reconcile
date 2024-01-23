@@ -3,21 +3,31 @@ package org.krmdemo.yaml.reconcile.ansi;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static java.lang.String.format;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 public class AnsiStyle {
 
-    private static final AnsiStyle EMPTY = new AnsiStyle();
+    private static final AnsiStyle ROOT = new AnsiStyle();
 
     private final AnsiStyle parent;
+
+    private final String formatString;
 
     private final String fg;
     private final String bg;
 
     private final Boolean bold;
 
+    /**
+     * The constructor of the root-style
+     */
     private AnsiStyle() {
-        this.parent = null;
+        this(null, "");
+    }
+
+    private AnsiStyle(AnsiStyle parent, String formatString) {
+        this.parent = parent;
+        this.formatString = formatString;
         this.fg = null;
         this.bg = null;
         this.bold = null;
@@ -25,6 +35,7 @@ public class AnsiStyle {
 
     private AnsiStyle(AnsiStyle parent, String fg, String bg, Boolean bold) {
         this.parent = parent;
+        this.formatString = ".";
         this.fg = fg;
         this.bg = bg;
         this.bold = bold;
@@ -42,34 +53,17 @@ public class AnsiStyle {
         return Optional.ofNullable(bold);
     }
 
-    public int depth() {
-        return parent != null ? parent.depth() + 1 : 0;
-    }
-
     public Stream<String> ansiCodes() {
         return Stream.empty(); // TODO: implement
     }
 
-    public String beginAnsiCodes() {
-        return "on"; // TODO: implement
+    public String formatString() {
+        return formatString;
     }
 
-    public String endAnsiCodes() {
-        return "off"; // TODO: implement
-    }
-
-    public String beginAnsi() {
-        if (parent == null) {
-            return "start-root";
-        }
-        return format("start[%d]<%s>", depth(), beginAnsiCodes());
-    }
-
-    public String endAnsi() {
-        if (parent == null) {
-            return "end-root";
-        }
-        return format("end[%d]<%s>", depth(), endAnsiCodes());
+    public String dump() {
+        String parentDump = parent == null ? "" : parent.dump() + ":";
+        return parentDump + formatString;
     }
 
     public Builder builder() {
@@ -77,17 +71,28 @@ public class AnsiStyle {
     }
 
     public static Builder empty() {
-        return EMPTY.builder();
+        return ROOT.builder();
     }
 
     public class Builder {
+
+        private String formatString;
         private String fg;
         private String bg;
 
         private  Boolean bold;
 
         public AnsiStyle build() {
-            return new AnsiStyle(AnsiStyle.this, fg, bg, bold);
+            if (isNotBlank(formatString)) {
+                return new AnsiStyle(AnsiStyle.this, formatString);
+            } else {
+                return new AnsiStyle(AnsiStyle.this, fg, bg, bold);
+            }
+        }
+
+        public Builder formatString(String formatString) {
+            this.formatString = formatString;
+            return this;
         }
 
         public Builder fg(String fg) {
