@@ -4,8 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.misc.Utils;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import org.antlr.v4.runtime.tree.Trees;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -13,6 +15,7 @@ import java.util.stream.Stream;
 import static java.lang.String.format;
 import static java.lang.System.lineSeparator;
 import static java.util.stream.Collectors.joining;
+import static org.antlr.v4.runtime.tree.Trees.getNodeText;
 import static org.apache.commons.text.StringEscapeUtils.escapeJava;
 
 @Slf4j
@@ -109,10 +112,13 @@ public class AnsiText {
         AnsiText ansiText = new AnsiText();
         log.debug("=====================================");
         ParseTree textTree = ansiText.parseText(text);
+        log.debug("textTree:\n" + dumpParseTree(textTree));
         log.debug("=====================================");
         ParseTree linesTree = ansiText.parseLines(text);
+        log.debug("linesTree:\n" + dumpParseTree(linesTree));
         log.debug("=====================================");
         ParseTree spansTree = ansiText.parseSpans(text);
+        log.debug("spansTree:\n" + dumpParseTree(spansTree));
         log.debug("=====================================");
         return ansiText;
     }
@@ -120,7 +126,7 @@ public class AnsiText {
     private ParseTree parseText(String text) {
         AnsiTextLexer lexer = new AnsiTextLexer(CharStreams.fromString(text));
         CommonTokenStream tokens = new CommonTokenStream(lexer);
-        AnsiTextLinesParser parser = new AnsiTextLinesParser(tokens);
+        AnsiTextParser parser = new AnsiTextParser(tokens);
         ParseTree tree = parser.text();
         ParseTreeWalker walker = new ParseTreeWalker();
         walker.walk(new TextListener(), tree);
@@ -247,5 +253,18 @@ public class AnsiText {
             return "???";
         }
         return format("(%d;%d)", token.getStartIndex(), token.getStopIndex());
+    }
+
+    private static String dumpParseTree(ParseTree parseTree) {
+        String nodeText = Utils.escapeWhitespace(getNodeText(parseTree, (List<String>)null), true);
+        StringBuilder sb = new StringBuilder(format("<< %s >> ", nodeText));
+        sb.append(format("(%s) ", parseTree.getClass().getSimpleName()));
+        sb.append(lineSeparator());
+        for (int i = 0; i < parseTree.getChildCount(); i++) {
+            sb.append("+-- ");
+            String childText = dumpParseTree(parseTree.getChild(i));
+            sb.append(childText.replaceAll("\n", "\n    "));
+        }
+        return sb.toString();
     }
 }
