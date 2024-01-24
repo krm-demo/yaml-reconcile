@@ -7,7 +7,7 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Utils;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
-import org.antlr.v4.runtime.tree.Trees;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -184,27 +184,27 @@ public class AnsiText {
         }
 
         @Override
-        public void enterLineLF(AnsiTextLinesParser.LineLFContext ctx) {
-            log.debug("|--> LineLF");
-        }
-
-        @Override
-        public void exitLineLF(AnsiTextLinesParser.LineLFContext ctx) {
-            log.debug("|<-- LineLF");
-        }
-
-        @Override
-        public void enterLineOpen(AnsiTextLinesParser.LineOpenContext ctx) {
-            log.debug(format("|---> enterLineOpen - %3d", lines.size() + 1));
+        public void enterLine(AnsiTextLinesParser.LineContext ctx) {
+            log.debug(format("|---> enterLine - %3d", lines.size() + 1));
             line();
         }
 
         @Override
-        public void exitLineOpen(AnsiTextLinesParser.LineOpenContext ctx) {
+        public void exitLine(AnsiTextLinesParser.LineContext ctx) {
             String content = ctx.getText();
             lastLine().content(content);
-            log.debug(format("|<---  exitSpanOpen - %3d --> [ %s ; %s ] '%s'",
+            log.debug(format("|<---  exitLine - %3d --> [ %s ; %s ] '%s'",
                 lines.size(), startStopIndexes(ctx.getStart()), startStopIndexes(ctx.getStop()), content));
+        }
+
+        @Override
+        public void visitTerminal(TerminalNode node) {
+             if (node.getSymbol().getType() == AnsiTextLinesLexer.CRLF) {
+                log.debug(format("|| visit CRLF(%s) in line %d at position %d",
+                    node.getSourceInterval(),
+                    node.getSymbol().getLine(),
+                    node.getSymbol().getCharPositionInLine()));
+            }
         }
     }
 
@@ -224,27 +224,26 @@ public class AnsiText {
         }
 
         @Override
-        public void enterSpanAnsiExpr(AnsiTextSpansParser.SpanAnsiExprContext ctx) {
-            log.debug("|--> SpanAnsiExpr");
-        }
-
-        @Override
-        public void exitSpanAnsiExpr(AnsiTextSpansParser.SpanAnsiExprContext ctx) {
-            log.debug("|<-- SpanAnsiExpr");
-        }
-
-        @Override
-        public void enterSpanOpen(AnsiTextSpansParser.SpanOpenContext ctx) {
-            log.debug(format("|---> enterSpanOpen - %3d", spans.size() + 1));
+        public void enterSpan(AnsiTextSpansParser.SpanContext ctx) {
+            log.debug(format("|---> enterSpan - %3d", spans.size() + 1));
             span();
         }
 
         @Override
-        public void exitSpanOpen(AnsiTextSpansParser.SpanOpenContext ctx) {
+        public void exitSpan(AnsiTextSpansParser.SpanContext ctx) {
             String content = escapeJava(ctx.getText());
             lastSpan().content(content);
-            log.debug(format("|<---  exitSpanOpen - %3d --> [ %s ; %s ] '%s'",
+            log.debug(format("|<---  exitSpan - %3d --> [ %s ; %s ] '%s'",
                 spans.size(), startStopIndexes(ctx.getStart()), startStopIndexes(ctx.getStop()), content));
+        }
+
+        public void visitTerminal(TerminalNode node) {
+            if (node.getSymbol().getType() == AnsiTextSpansLexer.ANSI_EXPR) {
+                log.debug(format("|| visit ANSI_EXPR(%s) in line %d at position %d",
+                    node.getSourceInterval(),
+                    node.getSymbol().getLine(),
+                    node.getSymbol().getCharPositionInLine()));
+            }
         }
     }
 
