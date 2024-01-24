@@ -1,8 +1,10 @@
 grammar AnsiText;
 
-text     : (lineLF)* lineOpen EOF;
-lineLF   : lineOpen CRLF;
-lineOpen : CHAR*;
+// --------------------------------------------------
+// have to capture spans over lines, where each
+// captured line must consist of splited spans
+// --------------------------------------------------
 
-CHAR : ~ ('\r'|'\n');
-CRLF : '\r'? '\n' | '\r';
+text : ANY_CHAR*? EOF;
+
+ANY_CHAR : .;
