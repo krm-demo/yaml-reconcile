@@ -7,5 +7,5 @@ grammar AnsiTextSpans;
 text : (span ANSI_EXPR)* span EOF;
 span : NON_ANSI*;
 
-NON_ANSI  : ~'|';
-ANSI_EXPR : '|';
+NON_ANSI  : ~[@|];
+ANSI_EXPR : '@|' | '|@';

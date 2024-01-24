@@ -239,7 +239,8 @@ public class AnsiText {
 
         public void visitTerminal(TerminalNode node) {
             if (node.getSymbol().getType() == AnsiTextSpansLexer.ANSI_EXPR) {
-                log.debug(format("|| visit ANSI_EXPR(%s) in line %d at position %d",
+                log.debug(format("|| visit ANSI_EXPR<%s>(%s) in line %d at position %d",
+                    node.getText(),
                     node.getSourceInterval(),
                     node.getSymbol().getLine(),
                     node.getSymbol().getCharPositionInLine()));
