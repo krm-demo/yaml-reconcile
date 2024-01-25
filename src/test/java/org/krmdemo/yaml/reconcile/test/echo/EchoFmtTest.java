@@ -42,9 +42,9 @@ public class EchoFmtTest {
         dumpCodePointInfo(0x2504);
         dumpCodePointInfo(0x2505);
         dumpCodePointInfo(0x2506);
-        System.out.println("1) al together times example --> '\u2504\u2504\u2504\u2504\u2504'");
-        System.out.println("2) al together times example --> '\u2505\u2505\u2505\u2505\u2505'");
-        System.out.println("3) al together times example --> '\u2506\u2506\u2506\u2506\u2506'");
+        System.out.println("1) all together times example --> '\u2504\u2504\u2504\u2504\u2504'");
+        System.out.println("2) all together times example --> '\u2505\u2505\u2505\u2505\u2505'");
+        System.out.println("3) all together times example --> '\u2506\u2506\u2506\u2506\u2506'");
         System.out.println();
 
         dumpCodePointInfo(0x0026A8);

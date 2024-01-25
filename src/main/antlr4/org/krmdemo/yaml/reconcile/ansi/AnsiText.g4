@@ -1,23 +1,27 @@
 grammar AnsiText;
 
-// --------------------------------------------------
+// ---------------------------------------------------------
 // have to capture spans over lines, where each
-// captured line must consist of splited spans
-// --------------------------------------------------
+// captured line must consist of spans splited with styles
+// ---------------------------------------------------------
 
-text : (line CRLF)* line EOF;
+text : line (CRLF line)*;
 line : (span | styleApply | styleReset)*;
-span : (CHAR | WS | DOUBLE_PIPE | DOUBLE_AT);
+span : (DOUBLE_PIPE | STYLE_CHAR | CHAR_COMMA | CHAR_WS | CHAR_SEMICOLON)+;
 
-styleApply : '@|' styleAttr (',' styleAttr)* (WS | ';' )?;
+styleApply : STYLE_APPLY styleAttr (CHAR_COMMA styleAttr)* (CHAR_WS | CHAR_SEMICOLON )?;
 styleAttr  : STYLE_CHAR+;
-styleReset : '|@';
-
-STYLE_CHAR : [a-zA-Z0-9()#*_/!]; // ????
-WS : [ \t];
+styleReset : STYLE_RESET;
 
 DOUBLE_PIPE : '||';
-DOUBLE_AT   : '@@';
+STYLE_APPLY : '@|';
+STYLE_RESET : '|@';
+CHAR_PIPE   : '|';   // <-- this symbol is prohibited
 
-CHAR : ~ [\r\n|@ \t];
+STYLE_CHAR : [a-zA-Z0-9()#*_/!];
+CHAR_COMMA : ',';
+CHAR_WS : [ \t];
+CHAR_SEMICOLON : ';';
+
 CRLF : '\r'? '\n' | '\r';
+CHAR : .;

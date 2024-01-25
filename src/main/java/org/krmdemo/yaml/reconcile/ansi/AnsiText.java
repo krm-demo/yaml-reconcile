@@ -8,6 +8,7 @@ import org.antlr.v4.runtime.misc.Utils;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.apache.commons.text.StringEscapeUtils;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -166,6 +167,35 @@ public class AnsiText {
         public void exitText(AnsiTextParser.TextContext ctx) {
             log.debug("|<- Text (lines of spans)");
         }
+
+        @Override
+        public void enterLine(AnsiTextParser.LineContext ctx) {
+            log.debug(format("|--> enterLine - start { %s }", dumpToken(ctx.start)));
+        }
+
+        @Override
+        public void exitLine(AnsiTextParser.LineContext ctx) {
+            log.debug(format("|<--  exitLine - stop  { %s }", dumpToken(ctx.stop)));
+        }
+
+        @Override
+        public void enterSpan(AnsiTextParser.SpanContext ctx) {
+            log.debug(format("|---> enterSpan - start { %s }", dumpToken(ctx.start)));
+        }
+
+        @Override
+        public void exitSpan(AnsiTextParser.SpanContext ctx) {
+            log.debug(format("|<---  exitSpan - stop  { %s }", dumpToken(ctx.stop)));
+        }
+
+        @Override
+        public void visitTerminal(TerminalNode node) {
+            log.debug(format("|| visit %s", dumpTerminalNode(node)));
+        }
+    }
+
+    private static String escapeAll(String str) {
+        return str.chars().boxed().map(c -> format("\\u%04x", c)).collect(joining());
     }
 
     /**
@@ -266,5 +296,29 @@ public class AnsiText {
             sb.append(childText.replaceAll("\n", "\n    "));
         }
         return sb.toString();
+    }
+
+    private static String dumpTerminalNode(TerminalNode node) {
+        if (node.getSymbol() == null) {
+            return format("<< unknown symbol for terminal node <%s>%s",
+                escapeJava(node.getText()), escapeAll(node.getText()));
+        } else {
+            return dumpToken(node.getSymbol());
+        }
+    }
+
+    private static String dumpToken(Token token) {
+        if (token == null) {
+            return "<< unknown token >>";
+        }
+        String nodeText = token.getText();
+        int nodeType = token.getType();
+        String nodeTypeName = AnsiTextLexer.ruleNames[nodeType - 1];
+        return format("%s<%s>%s(%d..%d) in line %d at position %d",
+            nodeTypeName, escapeJava(nodeText), escapeAll(nodeText),
+            token.getStartIndex(),
+            token.getStopIndex(),
+            token.getLine(),
+            token.getCharPositionInLine());
     }
 }
