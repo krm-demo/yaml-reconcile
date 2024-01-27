@@ -1,15 +1,44 @@
 package org.krmdemo.yaml.reconcile.ansi;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.lang.String.format;
+import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
+/**
+ * Text-style of ansi-text that is supported by most of ansi-terminals (including colors, intensity, etc...)
+ */
 public class AnsiStyle {
 
     private static final AnsiStyle ROOT = new AnsiStyle();
 
-    private final AnsiStyle parent;
+    /**
+     * An interface that holder of cascading ansi-style should implement
+     */
+    public interface Holder {
+        /**
+         * @return own style-property value
+         */
+        Optional<AnsiStyle> style();
+
+        /**
+         * @return outer component, which provide the default style
+         */
+        default Optional<Holder> parent() {
+            return Optional.empty();
+        }
+
+        /**
+         * @return a stream of styles that should be applied (from top-parent to this one)
+         */
+        default Stream<AnsiStyle> styleChain() {
+            Stream<AnsiStyle> parentChain = parent().stream().flatMap(Holder::styleChain);
+            return Stream.concat(parentChain, style().stream());
+        }
+    }
 
     private final String formatString;
 
@@ -22,19 +51,17 @@ public class AnsiStyle {
      * The constructor of the root-style
      */
     private AnsiStyle() {
-        this(null, "");
+        this("");
     }
 
-    private AnsiStyle(AnsiStyle parent, String formatString) {
-        this.parent = parent;
+    private AnsiStyle(String formatString) {
         this.formatString = formatString;
         this.fg = null;
         this.bg = null;
         this.bold = null;
     }
 
-    private AnsiStyle(AnsiStyle parent, String fg, String bg, Boolean bold) {
-        this.parent = parent;
+    private AnsiStyle(String fg, String bg, Boolean bold) {
         this.formatString = ".";
         this.fg = fg;
         this.bg = bg;
@@ -62,16 +89,19 @@ public class AnsiStyle {
     }
 
     public String dump() {
-        String parentDump = parent == null ? "" : parent.dump() + ":";
-        return parentDump + formatString;
+        asList(
+            fg().map(attr -> format("fg(%s)", attr)).orElse(""),
+            bg().map(attr -> format("bg(%s)", attr)).orElse("")
+        );
+        return "???"; // TODO: to be done
     }
 
     public Builder builder() {
         return new Builder();
     }
 
-    public static Builder empty() {
-        return ROOT.builder();
+    public static AnsiStyle empty() {
+        return ROOT;
     }
 
     public class Builder {
@@ -84,9 +114,9 @@ public class AnsiStyle {
 
         public AnsiStyle build() {
             if (isNotBlank(formatString)) {
-                return new AnsiStyle(AnsiStyle.this, formatString);
+                return new AnsiStyle(formatString);
             } else {
-                return new AnsiStyle(AnsiStyle.this, fg, bg, bold);
+                return new AnsiStyle(fg, bg, bold);
             }
         }
 
