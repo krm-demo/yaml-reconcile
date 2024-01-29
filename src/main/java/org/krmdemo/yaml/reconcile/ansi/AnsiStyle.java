@@ -66,15 +66,15 @@ public class AnsiStyle {
         }
     }
 
-    public Stream<String> dumpSeq() {
-        return attrs().map(AnsiStyleAttr::dump);
+    public Stream<String> attrsNames() {
+        return attrs().map(AnsiStyleAttr::name);
     }
 
     public String dump() {
         if (attrs.isEmpty()) {
             return "ansi-style-empty";
         } else {
-            return format("ansi-style<%s>", dumpSeq().collect(joining(",")));
+            return format("ansi-style<%s>", attrsNames().collect(joining(",")));
         }
     }
 

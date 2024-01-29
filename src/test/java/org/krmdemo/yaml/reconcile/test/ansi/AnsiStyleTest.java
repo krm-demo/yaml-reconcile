@@ -1,10 +1,14 @@
 package org.krmdemo.yaml.reconcile.test.ansi;
 
 import org.junit.jupiter.api.Test;
+import org.krmdemo.yaml.reconcile.ansi.AnsiStyle;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.empty;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.APPLY_BOLD;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.Color.*;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.RESET_ITALIC;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.bg;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.fg;
 
@@ -48,10 +52,10 @@ public class AnsiStyleTest {
         assertThat(bg(BRIGHT_CYAN).ansiCodeSeq()).isEqualTo("106");
         assertThat(bg(BRIGHT_WHITE).ansiCodeSeq()).isEqualTo("107");
 
-        assertThat(fg(RED).dump()).isEqualTo("fg(red)");
-        assertThat(fg(BRIGHT_GREEN).dump()).isEqualTo("fg(^green)");
-        assertThat(bg(YELLOW).dump()).isEqualTo("bg(yellow)");
-        assertThat(bg(BRIGHT_BLUE).dump()).isEqualTo("bg(^blue)");
+        assertThat(fg(RED).name()).isEqualTo("fg(red)");
+        assertThat(fg(BRIGHT_GREEN).name()).isEqualTo("fg(^green)");
+        assertThat(bg(YELLOW).name()).isEqualTo("bg(yellow)");
+        assertThat(bg(BRIGHT_BLUE).name()).isEqualTo("bg(^blue)");
     }
 
     @Test
@@ -59,8 +63,8 @@ public class AnsiStyleTest {
         assertThat(fg(123).ansiCodeSeq()).isEqualTo("38;5;123");
         assertThat(bg(234).ansiCodeSeq()).isEqualTo("48;5;234");
 
-        assertThat(fg(123).dump()).isEqualTo("fg(#7B)");
-        assertThat(bg(234).dump()).isEqualTo("bg(#EA)");
+        assertThat(fg(123).name()).isEqualTo("fg(#7B)");
+        assertThat(bg(234).name()).isEqualTo("bg(#EA)");
 
         assertThatIllegalArgumentException()
             .isThrownBy(() -> fg(345))
@@ -77,8 +81,8 @@ public class AnsiStyleTest {
         assertThat(fg(12, 34, 56).ansiCodeSeq()).isEqualTo("38;2;12;34;56");
         assertThat(bg(23, 45, 67).ansiCodeSeq()).isEqualTo("48;2;23;45;67");
 
-        assertThat(fg(12, 34, 56).dump()).isEqualTo("fg(#0C2238)");
-        assertThat(bg(23, 45, 67).dump()).isEqualTo("bg(#172D43)");
+        assertThat(fg(12, 34, 56).name()).isEqualTo("fg(#0C2238)");
+        assertThat(bg(23, 45, 67).name()).isEqualTo("bg(#172D43)");
 
         assertThatIllegalArgumentException()
             .isThrownBy(() -> fg(-2, 34, 56))
@@ -92,5 +96,23 @@ public class AnsiStyleTest {
             .isThrownBy(() -> fg(12, 34, 0x123))
             .withMessageContaining("Blue part of foreground true-color")
             .withMessageContaining("was 291");
+    }
+
+    @Test
+    void testStyleEmpty() {
+        assertThat(empty().renderAnsi()).isEmpty();
+        assertThat(empty().dump()).isEqualTo("ansi-style-empty");
+    }
+
+    @Test
+    void testStyleBuilder() {
+        AnsiStyle styleOne = empty().builder()
+            .accept(APPLY_BOLD)
+            .accept(bg(123))
+            .accept(fg(45))
+            .accept(RESET_ITALIC)
+            .build();
+        assertThat(styleOne.renderAnsi()).isEqualTo("\u001b[1;23;38;5;45;48;5;123;m");
+        assertThat(styleOne.dump()).isEqualTo("ansi-style<bold,!italic,fg(#2D),bg(#7B)>");
     }
 }
