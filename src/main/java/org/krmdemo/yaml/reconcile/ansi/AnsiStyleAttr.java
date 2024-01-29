@@ -77,6 +77,13 @@ public class AnsiStyleAttr implements Comparable<AnsiStyleAttr> {
         this.family = family;
         this.name = name;
         this.ansiCode = ansiCode;
+        attrByName.put(name(), this);
+    }
+
+    private final static Map<String, AnsiStyleAttr> attrByName = new LinkedHashMap<>();
+
+    public static Optional<AnsiStyleAttr> lookupByName(String styleAttrName) {
+        return Optional.ofNullable(attrByName.get(styleAttrName));
     }
 
     public Operation operation() {
@@ -97,6 +104,11 @@ public class AnsiStyleAttr implements Comparable<AnsiStyleAttr> {
 
     public String name() {
         return operationPrefix() + family().formatName(this.name);
+    }
+
+    @Override
+    public String toString() {
+        return name();
     }
 
     public Integer ansiCode() {

@@ -7,10 +7,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.empty;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.APPLY_BOLD;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.APPLY_DIM;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.APPLY_ITALIC;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.Color.*;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.RESET_BOLD;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.RESET_DIM;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.RESET_ITALIC;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.bg;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.fg;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.lookupByName;
 
 public class AnsiStyleTest {
 
@@ -105,14 +110,32 @@ public class AnsiStyleTest {
     }
 
     @Test
+    void testLookupByName() {
+        assertThat(lookupByName("la-la-la")).isNotPresent();
+
+        assertThat(lookupByName("dim")).hasValue(APPLY_DIM);
+        assertThat(lookupByName("italic")).hasValue(APPLY_ITALIC);
+
+        assertThat(lookupByName("!bold")).hasValue(RESET_BOLD);
+        assertThat(lookupByName("!dim")).hasValue(RESET_DIM);
+    }
+
+    @Test
     void testStyleBuilder() {
-        AnsiStyle styleOne = empty().builder()
+        AnsiStyle styleDirect = empty().builder()
             .accept(APPLY_BOLD)
             .accept(bg(123))
             .accept(fg(45))
             .accept(RESET_ITALIC)
             .build();
-        assertThat(styleOne.renderAnsi()).isEqualTo("\u001b[1;23;38;5;45;48;5;123;m");
-        assertThat(styleOne.dump()).isEqualTo("ansi-style<bold,!italic,fg(#2D),bg(#7B)>");
+        assertThat(styleDirect.renderAnsi()).isEqualTo("\u001b[1;23;38;5;45;48;5;123;m");
+        assertThat(styleDirect.dump()).isEqualTo("ansi-style<bold,!italic,fg(#2D),bg(#7B)>");
+
+        AnsiStyle styleLookup = empty().builder()
+            .acceptByName("underline")
+            .acceptByName("strikethrough")
+            .build();
+        assertThat(styleLookup.renderAnsi()).isEqualTo("\u001b[4;9;m");
+        assertThat(styleLookup.dump()).isEqualTo("ansi-style<underline,strikethrough>");
     }
 }

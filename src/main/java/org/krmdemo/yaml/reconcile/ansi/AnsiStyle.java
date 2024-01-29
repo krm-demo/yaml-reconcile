@@ -7,6 +7,7 @@ import static java.lang.String.format;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.stream.Collectors.joining;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.lookupByName;
 
 /**
  * Text-style of ansi-text that is supported by most of ansi-terminals (including colors, intensity, etc...)
@@ -100,6 +101,11 @@ public class AnsiStyle {
 
         public Builder accept(AnsiStyleAttr styleAttr) {
             attrsMap.put(styleAttr.family(), styleAttr);
+            return this;
+        }
+
+        public Builder acceptByName(String styleAttrName) {
+            lookupByName(styleAttrName).ifPresent(this::accept);
             return this;
         }
     }

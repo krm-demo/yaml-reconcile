@@ -12,7 +12,7 @@ span : (DOUBLE_PIPE | STYLE_CHAR | CHAR_COMMA | CHAR_WS | CHAR_SEMICOLON)+;
 styleApply : STYLE_APPLY styleAttr (CHAR_COMMA styleAttr)* (CHAR_WS | CHAR_SEMICOLON )?;
 styleReset : STYLE_RESET;
 
-styleAttr : styleName | styleFG | styleBG;
+styleAttr : styleAttrName | styleFG | styleBG;
 styleFG : 'fg(' fgName ')'
         | 'fg(#' fg256 ')'
         | 'fg(#' fgRGB ')';
@@ -20,7 +20,7 @@ styleBG : 'bg(' bgName ')'
         | 'bg(#' bg256 ')'
         | 'bg(#' bgRGB ')';
 
-styleName : STYLE_CHAR+;
+styleAttrName : STYLE_CHAR+;
 fgName : STYLE_CHAR+;
 bgName : STYLE_CHAR+;
 
