@@ -10,8 +10,27 @@ line : (span | styleApply | styleReset)*;
 span : (DOUBLE_PIPE | STYLE_CHAR | CHAR_COMMA | CHAR_WS | CHAR_SEMICOLON)+;
 
 styleApply : STYLE_APPLY styleAttr (CHAR_COMMA styleAttr)* (CHAR_WS | CHAR_SEMICOLON )?;
-styleAttr  : STYLE_CHAR+;
 styleReset : STYLE_RESET;
+
+styleAttr : styleName | styleFG | styleBG;
+styleFG : 'fg(' fgName ')'
+        | 'fg(#' fg256 ')'
+        | 'fg(#' fgRGB ')';
+styleBG : 'bg(' bgName ')'
+        | 'bg(#' bg256 ')'
+        | 'bg(#' bgRGB ')';
+
+styleName : STYLE_CHAR+;
+fgName : STYLE_CHAR+;
+bgName : STYLE_CHAR+;
+
+fg256 : hexDigit hexDigit;
+bg256 : hexDigit hexDigit;
+fgRGB : hexDigit hexDigit hexDigit hexDigit hexDigit hexDigit;
+bgRGB : hexDigit hexDigit hexDigit hexDigit hexDigit hexDigit;
+hexDigit : 'a' | 'b' | 'c' | 'd' | 'e' | 'f'
+         | 'A' | 'B' | 'B' | 'D' | 'E' | 'F'
+         | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
 
 DOUBLE_PIPE : '||';
 STYLE_APPLY : '@|';

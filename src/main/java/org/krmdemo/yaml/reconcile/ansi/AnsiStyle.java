@@ -1,12 +1,12 @@
 package org.krmdemo.yaml.reconcile.ansi;
 
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.unmodifiableMap;
+import static java.util.stream.Collectors.joining;
 
 /**
  * Text-style of ansi-text that is supported by most of ansi-terminals (including colors, intensity, etc...)
@@ -40,60 +40,42 @@ public class AnsiStyle {
         }
     }
 
-    private final String formatString;
+    private final Map<AnsiStyleAttr.Family, AnsiStyleAttr> attrs;
 
-    private final String fg;
-    private final String bg;
-
-    private final Boolean bold;
-
-    /**
-     * The constructor of the root-style
-     */
     private AnsiStyle() {
-        this("");
+        this.attrs = emptyMap();
     }
 
-    private AnsiStyle(String formatString) {
-        this.formatString = formatString;
-        this.fg = null;
-        this.bg = null;
-        this.bold = null;
+    private AnsiStyle(Map<AnsiStyleAttr.Family, AnsiStyleAttr> attrs) {
+        this.attrs = unmodifiableMap(attrs);
     }
 
-    private AnsiStyle(String fg, String bg, Boolean bold) {
-        this.formatString = ".";
-        this.fg = fg;
-        this.bg = bg;
-        this.bold = bold;
+    public Stream<AnsiStyleAttr> attrs() {
+        return attrs.values().stream().sorted();
     }
 
-    public Optional<String> fg() {
-        return Optional.ofNullable(fg);
+    public Stream<String> ansiCodeSeq() {
+        return attrs().map(AnsiStyleAttr::ansiCodeSeq);
     }
 
-    public Optional<String> bg() {
-        return Optional.ofNullable(bg);
+    public String renderAnsi() {
+        if (attrs.isEmpty()) {
+            return "";
+        } else {
+            return format("\u001b[%s;m", ansiCodeSeq().collect(joining(";")));
+        }
     }
 
-    public Optional<Boolean> bold() {
-        return Optional.ofNullable(bold);
-    }
-
-    public Stream<String> ansiCodes() {
-        return Stream.empty(); // TODO: implement
-    }
-
-    public String formatString() {
-        return formatString;
+    public Stream<String> dumpSeq() {
+        return attrs().map(AnsiStyleAttr::dump);
     }
 
     public String dump() {
-        asList(
-            fg().map(attr -> format("fg(%s)", attr)).orElse(""),
-            bg().map(attr -> format("bg(%s)", attr)).orElse("")
-        );
-        return "???"; // TODO: to be done
+        if (attrs.isEmpty()) {
+            return "ansi-style-empty";
+        } else {
+            return format("ansi-style<%s>", dumpSeq().collect(joining(",")));
+        }
     }
 
     public Builder builder() {
@@ -106,37 +88,18 @@ public class AnsiStyle {
 
     public class Builder {
 
-        private String formatString;
-        private String fg;
-        private String bg;
+        private final Map<AnsiStyleAttr.Family, AnsiStyleAttr> attrsMap = new LinkedHashMap<>();
 
-        private  Boolean bold;
+        private Builder() {
+            attrs().forEach(this::accept);
+        }
 
         public AnsiStyle build() {
-            if (isNotBlank(formatString)) {
-                return new AnsiStyle(formatString);
-            } else {
-                return new AnsiStyle(fg, bg, bold);
-            }
+            return new AnsiStyle(attrsMap);
         }
 
-        public Builder formatString(String formatString) {
-            this.formatString = formatString;
-            return this;
-        }
-
-        public Builder fg(String fg) {
-            this.fg = fg;
-            return this;
-        }
-
-        public Builder bg(String bg) {
-            this.bg = bg;
-            return this;
-        }
-
-        public Builder bold(Boolean bold) {
-            this.bold = bold;
+        public Builder accept(AnsiStyleAttr styleAttr) {
+            attrsMap.put(styleAttr.family(), styleAttr);
             return this;
         }
     }
