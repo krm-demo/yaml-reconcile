@@ -8,17 +8,18 @@ import org.antlr.v4.runtime.misc.Utils;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.apache.commons.text.StringEscapeUtils;
 
 import java.util.*;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.lang.System.lineSeparator;
+import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 import static org.antlr.v4.runtime.tree.Trees.getNodeText;
 import static org.apache.commons.text.StringEscapeUtils.escapeJava;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.empty;
 
 @Slf4j
 public class AnsiText implements AnsiStyle.Holder {
@@ -29,7 +30,7 @@ public class AnsiText implements AnsiStyle.Holder {
         private final String content;
 
         private Span(String content) {
-            this(AnsiStyle.empty(), content);
+            this(empty(), content);
         }
 
         private Span(AnsiStyle style, String content) {
@@ -62,7 +63,7 @@ public class AnsiText implements AnsiStyle.Holder {
         }
 
         public String dump() {
-            return format("span(%d|%3s|%s)", content.length(), style.dump(), content);
+            return format(":: - span width=%3d |%-20s<|%s|>", content.length(), style.dump(), content);
         }
     }
 
@@ -99,13 +100,14 @@ public class AnsiText implements AnsiStyle.Holder {
 
     private final AnsiStyle style;
 
-    private final AnsiStyle.Builder styleBuilder;
 
     private final List<Line> lines = new ArrayList<>();
 
+    private AnsiStyle.Builder styleBuilder = empty().builder();
+    private final LinkedList<AnsiStyle> styleStack = new LinkedList<>();
+
     private AnsiText(AnsiStyle style) {
         this.style = style;
-        this.styleBuilder = style.builder();
     }
 
     private AnsiText(AnsiStyle style, List<Line> lines) {
@@ -118,8 +120,21 @@ public class AnsiText implements AnsiStyle.Holder {
         return Optional.ofNullable(style);
     }
 
+    public List<Line> lines() {
+        return unmodifiableList(this.lines);
+    }
+
     public String renderAnsi() {
         return lines.stream().map(Line::renderAnsi).collect(joining(lineSeparator()));
+    }
+
+    public String dump() {
+        if (lines.isEmpty()) {
+            return "~~ empty ansi-text ~~";
+        } else {
+            return format("~~ ansi-text of %d lines ~~%n%s",
+                lines.size(), lines.stream().map(Line::dump).collect(joining(lineSeparator())));
+        }
     }
 
     public AnsiText newLine() {
@@ -144,7 +159,7 @@ public class AnsiText implements AnsiStyle.Holder {
     }
 
     public static AnsiText ansiText() {
-        return new AnsiText(AnsiStyle.empty());
+        return new AnsiText(empty());
     }
 
     public static AnsiText ansiText(AnsiStyle style) {
@@ -157,6 +172,10 @@ public class AnsiText implements AnsiStyle.Holder {
 
     public static AnsiText ansiText(AnsiText ansiText) {
         return new AnsiText(ansiText.style, ansiText.lines);
+    }
+
+    public static AnsiText ansiText(String text) {
+        return ansiText(empty(), text);
     }
 
     public static AnsiText ansiText(AnsiStyle style, String text) {
@@ -181,7 +200,7 @@ public class AnsiText implements AnsiStyle.Holder {
     /**
      * Listen to lines of spans
      */
-    private class TextListener extends AnsiTextBaseListener {
+    private class TextListener extends AnsiTextParserBaseListener {
         @Override
         public void enterText(AnsiTextParser.TextContext ctx) {
             log.debug("|-> Text (lines of spans)");
@@ -254,7 +273,7 @@ public class AnsiText implements AnsiStyle.Holder {
         }
         String nodeText = token.getText();
         int nodeType = token.getType();
-        String nodeTypeName = AnsiTextLexer.ruleNames[nodeType - 1];
+        String nodeTypeName = nodeType > 0 ? AnsiTextLexer.ruleNames[nodeType - 1] : "nodeType#" + nodeType;
         return format("%s<%s>%s(%d..%d) in line %d at position %d",
             nodeTypeName, escapeJava(nodeText), escapeAll(nodeText),
             token.getStartIndex(),

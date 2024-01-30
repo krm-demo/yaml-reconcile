@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
@@ -34,6 +35,19 @@ public class EchoFmtTest {
     @Test
     void testSingleArg() {
         assertThat(echoFmt.apply("la-la-la")).isEqualTo("la-la-la");
+
+        // https://en.wikipedia.org/wiki/Non-breaking_space
+        dumpCodePointInfo(0xA0);
+        dumpCodePointInfo(0x2060);
+        System.out.println();
+
+        // https://en.wikipedia.org/wiki/Hyphen#Nonbreaking_hyphens
+        for (int charPoint : asList(0x2D, 0xAD, 0x2010, 0x2011, 0x2E5D,
+                                    0x058A, 0x05BE, 0x1006, 0x1B60, 0x2E17, 0x30FB, 0xFE63, 0xFF0D, 0xFF65,
+                                    0x1400, 0x2027, 0x2043, 0x2E1A, 0x2E40, 0x30A0, 0x10EAD)) {
+            dumpCodePointInfo(charPoint);
+        }
+        System.out.println();
 
         dumpCodePointInfo(0x1F4A9);
         System.out.println("3 times example --> '\uD83D\uDCA9'-'\uD83D\uDCA9'-'\uD83D\uDCA9'");
@@ -63,7 +77,7 @@ public class EchoFmtTest {
 
     private static void dumpCodePointInfo(int codePoint) {
         String codePointStr = Character.toString(codePoint);
-        System.out.printf("\\U+%x --> \\U%08x --> [%s] (%d) '%s' --> '%s' = '%s' : '%s', \"%s\", %s%n",
+        System.out.printf("\\U+%x ->\t \\U%08x --> [%s] (%d) '%s' --> '%s' = '%s' : '%s', \"%s\", %s%n",
             codePoint, codePoint,
             codePointStr, codePointStr.codePointCount(0, codePointStr.length()), //length(codePointStr),
             escapeJava(codePointStr),

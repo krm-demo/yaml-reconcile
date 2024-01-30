@@ -11,16 +11,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class AnsiTextTest {
 
     @Test
-    void testMultiLines() {
+    void testStyleOpen() {
         String threeLines = """
-              This is the line 1 @|blue; and
-            this |@; is @|red; the second |@cyan; one
-            but @|bold;it'|@ the last
+              the first line 1 with 2 leading spaces
+            this is @|red the red|@ fragment without leading space or semicolon;
+            this is @|red;the same red|@ with neither leading space nor semicolon again;
+            this is @|red,bold; red and bold|@ fragment with leading space;
+            and @|underline,blue ;underline and blue|@ fragment with leading semicolon;
             """;
-        // TODO: to be done
-//        AnsiText ansiText = AnsiText.ansiText(threeLines);
-//        System.out.println("========== dump lines: ======================");
-//        System.out.println(ansiText.dumpLines());
+        System.out.println(threeLines);
+        AnsiText ansiText = AnsiText.ansiText(threeLines);
+        System.out.println("========== dump lines: ======================");
+        System.out.println(ansiText.dump());
 //        assertThat(ansiText.renderLinesAnsi().collect(joining(lineSeparator()))).isEqualTo(threeLines);
 //        System.out.println("========== dump spans: ======================");
 //        System.out.println(ansiText.dumpSpans());
