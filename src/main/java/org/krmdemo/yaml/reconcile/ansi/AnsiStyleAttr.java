@@ -4,9 +4,13 @@ package org.krmdemo.yaml.reconcile.ansi;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.lang.String.valueOf;
+import static java.lang.System.lineSeparator;
+import static java.util.Arrays.stream;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.Family.*;
 
 /**
@@ -59,7 +63,13 @@ public class AnsiStyleAttr implements Comparable<AnsiStyleAttr> {
         }
 
         public String formatName(String styleName) {
-            return formatString == null ? styleName : format(formatString, styleName);
+            if (isBlank(styleName)) {
+                return familyName;
+            } else if (isBlank(formatString)) {
+                return styleName;
+            } else {
+                return format(formatString, styleName);
+            }
         }
     }
 
@@ -80,10 +90,17 @@ public class AnsiStyleAttr implements Comparable<AnsiStyleAttr> {
         attrByName.put(name(), this);
     }
 
-    private final static Map<String, AnsiStyleAttr> attrByName = new LinkedHashMap<>();
+    private final static Map<String, AnsiStyleAttr> attrByName = new TreeMap<>();
 
     public static Optional<AnsiStyleAttr> lookupByName(String styleAttrName) {
-        return Optional.ofNullable(attrByName.get(styleAttrName));
+        AnsiStyleAttr styleAttr = attrByName.get(styleAttrName);
+        if (styleAttr == null) {
+            log.warn("could not lookup attribute by name '" + styleAttrName + "'");
+//            log.warn("available attributes are: \n" + attrByName.entrySet().stream()
+//                .map(e -> format("'%s' ---> %s", e.getKey(), e.getValue()))
+//                .collect(Collectors.joining(lineSeparator())));
+        }
+        return Optional.ofNullable(styleAttr);
     }
 
     public Operation operation() {
@@ -149,9 +166,9 @@ public class AnsiStyleAttr implements Comparable<AnsiStyleAttr> {
     public static AnsiStyleAttr APPLY_STRIKETHROUGH = applyAttr(STRIKETHROUGH, 9);
 
     public static AnsiStyleAttr RESET_FG =
-        new AnsiStyleAttr(Operation.reset, FOREGROUND, 39);
+        new AnsiStyleAttr(Operation.reset, FOREGROUND, "", 39);
     public static AnsiStyleAttr RESET_BG =
-        new AnsiStyleAttr(Operation.reset, BACKGROUND, 49);
+        new AnsiStyleAttr(Operation.reset, BACKGROUND, "", 49);
 
     public enum Color {
 
@@ -176,7 +193,10 @@ public class AnsiStyleAttr implements Comparable<AnsiStyleAttr> {
         private final AnsiStyleAttr fg;
         private final AnsiStyleAttr bg;
 
+        private final String colorName;
+
         Color(int fgCode, int bgCode, String colorName) {
+            this.colorName = colorName;
             this.fg = new AnsiStyleAttr(Operation.apply, FOREGROUND, colorName, fgCode);
             this.bg = new AnsiStyleAttr(Operation.apply, BACKGROUND, colorName, bgCode);
         }
@@ -242,5 +262,15 @@ public class AnsiStyleAttr implements Comparable<AnsiStyleAttr> {
             throw new IllegalArgumentException(format(fmtErrMsg, intValue));
         }
         return format("%02X", intValue);
+    }
+
+    static {
+        stream(Color.values()).forEach(color -> {
+            attrByName.put(color.colorName, color.fg);
+        });
+//        log.info("after adding colors available attributes are: \n" +
+//                 attrByName.entrySet().stream()
+//                     .map(e -> format("'%s' ---> %s", e.getKey(), e.getValue()))
+//                     .collect(Collectors.joining(lineSeparator())));
     }
 }

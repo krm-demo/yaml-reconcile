@@ -3,8 +3,6 @@ package org.krmdemo.yaml.reconcile.ansi;
 import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.misc.Utils;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -17,8 +15,6 @@ import static java.lang.System.lineSeparator;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
-import static org.antlr.v4.runtime.tree.Trees.getNodeText;
-import static org.apache.commons.text.StringEscapeUtils.escapeJava;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.empty;
 
 @Slf4j
@@ -63,7 +59,7 @@ public class AnsiText implements AnsiStyle.Holder {
         }
 
         public String dump() {
-            return format(":: - span width=%3d |%-20s<|%s|>", content.length(), style.dump(), content);
+            return format(":: - span width=%3d |%-30s<|%s|>", content.length(), style.dump(), content);
         }
     }
 
@@ -180,10 +176,9 @@ public class AnsiText implements AnsiStyle.Holder {
 
     public static AnsiText ansiText(AnsiStyle style, String text) {
         AnsiText ansiText = ansiText(style);
-        log.debug("=====================================");
         ParseTree textTree = ansiText.parseText(text);
-        log.debug("textTree:\n" + dumpParseTree(textTree));
-        log.debug("=====================================");
+//        log.trace("textTree:\n" + dumpParseTree(textTree));
+//        log.trace("=====================================");
         return ansiText;
     }
 
@@ -213,72 +208,108 @@ public class AnsiText implements AnsiStyle.Holder {
 
         @Override
         public void enterLine(AnsiTextParser.LineContext ctx) {
-            log.debug(format("|--> enterLine - start { %s }", dumpToken(ctx.start)));
+            log.debug(format("|--> enterLine - #%d", lines.size()));
         }
 
         @Override
         public void exitLine(AnsiTextParser.LineContext ctx) {
-            log.debug(format("|<--  exitLine - stop  { %s }", dumpToken(ctx.stop)));
+            log.debug(format("|<--  exitLine - #%d", lines.size()));
         }
 
         @Override
         public void enterSpan(AnsiTextParser.SpanContext ctx) {
-            log.debug(format("|---> enterSpan - start { %s }", dumpToken(ctx.start)));
+            log.debug(format("|---> enterSpan #%d in line #%d", currentLine().spans.size(), lines.size()));
         }
 
         @Override
         public void exitSpan(AnsiTextParser.SpanContext ctx) {
-            log.debug(format("|<---  exitSpan - stop  { %s }", dumpToken(ctx.stop)));
+            log.debug(format("|<---  exitSpan - '%s'", ctx.getText()));
             span(ctx.getText());
         }
 
         @Override
+        public void enterStyleOpen(AnsiTextParser.StyleOpenContext ctx) {
+            AnsiStyle parentStyle = styleBuilder.build();
+            styleStack.addLast(parentStyle);
+            log.debug(format("|---> enterStyleOpen - push in stack (%d) %s", styleStack.size(), parentStyle));
+        }
+
+        @Override
+        public void exitStyleOpen(AnsiTextParser.StyleOpenContext ctx) {
+            log.debug(format("|<---  exitStyleOpen - stack (%d) %s", styleStack.size(), styleBuilder.build()));
+        }
+
+        @Override
+        public void enterStyleClose(AnsiTextParser.StyleCloseContext ctx) {
+            log.debug(format("|---> enterStyleClose - push in stack (%d)", styleStack.size()));
+        }
+
+        @Override
+        public void exitStyleClose(AnsiTextParser.StyleCloseContext ctx) {
+            if (!styleStack.isEmpty()) {
+                styleBuilder = styleStack.removeLast().builder();
+            }
+            log.debug(format("|<---  exitStyleClose - stack (%d) %s", styleStack.size(), styleBuilder.build()));
+        }
+
+        @Override
+        public void enterStyleAttrName(AnsiTextParser.StyleAttrNameContext ctx) {
+            log.debug(format("|----> enterStyleAttrName - style before: %s", styleBuilder.build()));
+        }
+
+        @Override
+        public void exitStyleAttrName(AnsiTextParser.StyleAttrNameContext ctx) {
+            styleBuilder.acceptByName(ctx.getText());
+            log.debug(format("|<----  exitStyleAttrName - '%s', style after: %s", ctx.getText(), styleBuilder.build()));
+        }
+
+        @Override
         public void visitTerminal(TerminalNode node) {
-            log.debug(format("|| visit %s", dumpTerminalNode(node)));
+//            log.trace(format("|| visit %s", dumpTerminalNode(node)));
             if (node.getSymbol().getType() == AnsiTextLexer.CRLF) {
                 newLine();
             }
         }
     }
 
-    private static String escapeAll(String str) {
-        return str.chars().boxed().map(c -> format("\\u%04x", c)).collect(joining());
-    }
-
-    private static String dumpParseTree(ParseTree parseTree) {
-        String nodeText = Utils.escapeWhitespace(getNodeText(parseTree, (List<String>)null), true);
-        StringBuilder sb = new StringBuilder(format("<< %s >> ", nodeText));
-        sb.append(format("(%s) ", parseTree.getClass().getSimpleName()));
-        sb.append(lineSeparator());
-        for (int i = 0; i < parseTree.getChildCount(); i++) {
-            sb.append("+-- ");
-            String childText = dumpParseTree(parseTree.getChild(i));
-            sb.append(childText.replaceAll("\n", "\n    "));
-        }
-        return sb.toString();
-    }
-
-    private static String dumpTerminalNode(TerminalNode node) {
-        if (node.getSymbol() == null) {
-            return format("<< unknown symbol for terminal node <%s>%s",
-                escapeJava(node.getText()), escapeAll(node.getText()));
-        } else {
-            return dumpToken(node.getSymbol());
-        }
-    }
-
-    private static String dumpToken(Token token) {
-        if (token == null) {
-            return "<< unknown token >>";
-        }
-        String nodeText = token.getText();
-        int nodeType = token.getType();
-        String nodeTypeName = nodeType > 0 ? AnsiTextLexer.ruleNames[nodeType - 1] : "nodeType#" + nodeType;
-        return format("%s<%s>%s(%d..%d) in line %d at position %d",
-            nodeTypeName, escapeJava(nodeText), escapeAll(nodeText),
-            token.getStartIndex(),
-            token.getStopIndex(),
-            token.getLine(),
-            token.getCharPositionInLine());
-    }
+//    private static String escapeAll(String str) {
+//        return str.chars().boxed().map(c -> format("\\u%04x", c)).collect(joining());
+//    }
+//
+//    private static String dumpParseTree(ParseTree parseTree) {
+//        String nodeText = Utils.escapeWhitespace(getNodeText(parseTree, (List<String>)null), true);
+//        StringBuilder sb = new StringBuilder(format("<< %s >> ", nodeText));
+//        sb.append(format("(%s) ", parseTree.getClass().getSimpleName()));
+//        sb.append(lineSeparator());
+//        for (int i = 0; i < parseTree.getChildCount(); i++) {
+//            sb.append("+-- ");
+//            String childText = dumpParseTree(parseTree.getChild(i));
+//            sb.append(childText.replaceAll("\n", "\n    "));
+//        }
+//        return sb.toString();
+//    }
+//
+//    private static String dumpTerminalNode(TerminalNode node) {
+//        if (node.getSymbol() == null) {
+//            return format("<< unknown symbol for terminal node <%s>%s",
+//                escapeJava(node.getText()), escapeAll(node.getText()));
+//        } else {
+//            return dumpToken(node.getSymbol());
+//        }
+//    }
+//
+//    private static String dumpToken(Token token) {
+//        if (token == null) {
+//            return "<< unknown token >>";
+//        }
+//        String nodeText = token.getText();
+//        int nodeType = token.getType();
+//        String nodeTypeName = nodeType > 0 ? AnsiTextLexer.ruleNames[nodeType - 1] : "nodeType#" + nodeType;
+//        return format("%s<%s>%s(%d..%d) in line %d at position %d",
+//            nodeTypeName + "--" + token.getTokenIndex(), escapeJava(nodeText), escapeAll(nodeText),
+//            token.getStartIndex(),
+//            token.getStopIndex(),
+//            token.getLine(),
+//            token.getCharPositionInLine());
+//    }
 }

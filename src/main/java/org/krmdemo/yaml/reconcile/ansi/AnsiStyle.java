@@ -79,6 +79,11 @@ public class AnsiStyle {
         }
     }
 
+    @Override
+    public String toString() {
+        return dump();
+    }
+
     public Builder builder() {
         return new Builder();
     }
@@ -89,14 +94,14 @@ public class AnsiStyle {
 
     public class Builder {
 
-        private final Map<AnsiStyleAttr.Family, AnsiStyleAttr> attrsMap = new LinkedHashMap<>();
+        private final Map<AnsiStyleAttr.Family, AnsiStyleAttr> attrsMap = new TreeMap<>();
 
         private Builder() {
             attrs().forEach(this::accept);
         }
 
         public AnsiStyle build() {
-            return new AnsiStyle(attrsMap);
+            return new AnsiStyle(new TreeMap<>(attrsMap));
         }
 
         public Builder accept(AnsiStyleAttr styleAttr) {

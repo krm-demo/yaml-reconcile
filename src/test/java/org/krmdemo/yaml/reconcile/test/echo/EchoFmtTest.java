@@ -1,23 +1,16 @@
 package org.krmdemo.yaml.reconcile.test.echo;
 
-import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
-import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
-import static java.util.Arrays.stream;
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.summarizingDouble;
 import static org.apache.commons.lang3.StringUtils.repeat;
-import static org.apache.commons.lang3.StringUtils.rightPad;
 import static org.apache.commons.text.StringEscapeUtils.escapeJava;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -35,6 +28,9 @@ public class EchoFmtTest {
     @Test
     void testSingleArg() {
         assertThat(echoFmt.apply("la-la-la")).isEqualTo("la-la-la");
+
+        "012;89()*_/!acb.xyzABC,XYZ".chars().forEach(EchoFmtTest::dumpCodePointInfo);
+        System.out.println();
 
         // https://en.wikipedia.org/wiki/Non-breaking_space
         dumpCodePointInfo(0xA0);

@@ -3,11 +3,6 @@ package org.krmdemo.yaml.reconcile.test.ansi;
 import org.junit.jupiter.api.Test;
 import org.krmdemo.yaml.reconcile.ansi.AnsiText;
 
-import static java.lang.System.lineSeparator;
-import static java.util.stream.Collectors.joining;
-import static org.apache.commons.text.StringEscapeUtils.escapeJava;
-import static org.assertj.core.api.Assertions.assertThat;
-
 public class AnsiTextTest {
 
     @Test
