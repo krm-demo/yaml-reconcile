@@ -157,6 +157,19 @@ public class AnsiStyleAttr implements Comparable<AnsiStyleAttr> {
         return name();
     }
 
+    @Override
+    public boolean equals(Object thatObj) {
+        if (!(thatObj instanceof AnsiStyleAttr that)) {
+            return false;
+        }
+        return this.name().equals(that.name());
+    }
+
+    @Override
+    public int hashCode() {
+        return this.name().hashCode();
+    }
+
     public Integer ansiCode() {
         return this.ansiCode;
     }

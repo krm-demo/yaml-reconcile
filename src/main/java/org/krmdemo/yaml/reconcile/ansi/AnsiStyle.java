@@ -8,7 +8,6 @@ import java.util.stream.Stream;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
-import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.Family.ALL;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.lookupByName;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.lookupResetFamily;
 
@@ -18,7 +17,7 @@ import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.lookupResetFamily;
 @Slf4j
 public class AnsiStyle {
 
-    private static final AnsiStyle ROOT = new AnsiStyle();
+    private static final AnsiStyle EMPTY = new AnsiStyle();
 
     private static final String DELIMITER_ANSI_SEQ = ";";
 
@@ -49,7 +48,7 @@ public class AnsiStyle {
          * @return a stream of styles that should be applied (from top-parent to this one INCLUSIVE)
          */
         default Stream<AnsiStyle> styleChain() {
-            return Stream.concat(parentChain(), style().stream());
+            return Stream.concat(parentChain(), style().stream()).filter(AnsiStyle::isNotEmpty);
         }
 
         default AnsiStyle parentStyle() {
@@ -69,8 +68,18 @@ public class AnsiStyle {
         this.attrs = attrsStream.toList();
     }
 
+    /**
+     * @return true if style does not have any attribute (otherwise - false)
+     */
     public boolean isEmpty() {
         return attrs.isEmpty();
+    }
+
+    /**
+     * @return true if style has at least one attribute (otherwise - false)
+     */
+    public boolean isNotEmpty() {
+        return !this.isEmpty();
     }
 
     public Stream<AnsiStyleAttr> attrs() {
@@ -110,8 +119,18 @@ public class AnsiStyle {
         return new Builder();
     }
 
+    /**
+     * @return an instance of empty style
+     */
     public static AnsiStyle empty() {
-        return ROOT;
+        return EMPTY;
+    }
+
+    /**
+     * @return a new instance of {@link AnsiStyle.Builder} from empty style
+     */
+    public static Builder emptyBuilder() {
+        return empty().builder();
     }
 
     public class Builder {
