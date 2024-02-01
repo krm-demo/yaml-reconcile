@@ -56,6 +56,20 @@ public class AnsiStyle {
             parentChain().flatMap(AnsiStyle::attrs).forEach(builder::accept);  // <-- think about reduce
             return builder.build();
         }
+
+        default AnsiStyle styleOpen() {
+            return style()
+                .map(parentStyle().builder()::apply)
+                .map(AnsiStyle.Builder::build)
+                .orElse(empty());
+        }
+
+        default AnsiStyle styleClose() {
+            return style()
+                .map(parentStyle().builder()::reset)
+                .map(AnsiStyle.Builder::build)
+                .orElse(empty());
+        }
     }
 
     private final List<AnsiStyleAttr> attrs;  // <-- think about unmodifiable List
@@ -82,14 +96,23 @@ public class AnsiStyle {
         return !this.isEmpty();
     }
 
+    /**
+     * @return the {@link Stream} of ansi-style attributes
+     */
     public Stream<AnsiStyleAttr> attrs() {
         return attrs.stream();
     }
 
+    /**
+     * @return the escape-sequence as a {@link Stream} of escape-codes for each ansi-attribute
+     */
     public Stream<String> ansiCodeSeq() {
         return attrs().map(AnsiStyleAttr::ansiCodeSeq);
     }
 
+    /**
+     * @return the escape-sequence surrounded with proper suffix and prefix
+     */
     public String renderAnsi() {
         if (attrs.isEmpty()) {
             return "";
@@ -98,10 +121,16 @@ public class AnsiStyle {
         }
     }
 
+    /**
+     * @return the {@link Stream} of ansi-style attributes' names
+     */
     public Stream<String> attrsNames() {
         return attrs().map(AnsiStyleAttr::name);
     }
 
+    /**
+     * @return dump the {@link AnsiStyle} object for debug purposes
+     */
     public String dump() {
         if (attrs.isEmpty()) {
             return "ansi-style-empty";
@@ -115,6 +144,9 @@ public class AnsiStyle {
         return dump();
     }
 
+    /**
+     * @return an instance of ansi-style builder from this ansi-style
+     */
     public Builder builder() {
         return new Builder();
     }
@@ -133,6 +165,9 @@ public class AnsiStyle {
         return empty().builder();
     }
 
+    /**
+     * A mutable builder to create an instance of immutable class {@link AnsiStyle}
+     */
     public class Builder {
 
         private final Map<AnsiStyleAttr.Family, AnsiStyleAttr> attrsMap = new TreeMap<>();

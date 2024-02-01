@@ -17,9 +17,20 @@ import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.empty;
 
+/**
+ * This class represents the multi-line text with global outer ansi-style and sequential fragments
+ * with their own ansi-style that are applied according to nested hierarchy.
+ * <p/>
+ * The class is not immutable and could also be used as a builder of its content
+ * during parsing the formatted ansi-text or programmatically.
+ */
 @Slf4j
 public class AnsiText implements AnsiStyle.Holder {
 
+    /**
+     * Immutable class that represents a continues fragment of text within the same line and the same ansi-style,
+     * which is mostly correspond to HTML element <code>&lt;span&gt;</code>.
+     */
     public class Span implements AnsiStyle.Holder {
 
         private final AnsiStyle style;
@@ -32,41 +43,54 @@ public class AnsiText implements AnsiStyle.Holder {
             this.style = style;
         }
 
+        /**
+         * @return the content of this span of text
+         */
         public String content() {
             return content;
         }
 
+        /**
+         * @return the ansy-style of this span of text
+         */
         public Optional<AnsiStyle> style() {
             // effective style could be evaluated here or inside AnsiStyle
             return Optional.ofNullable(style);
         }
 
+        /**
+         * @return a holder of this span of text, which is an outer {@link AnsiText}
+         */
         public Optional<AnsiStyle.Holder> parent() {
             return Optional.of(AnsiText.this);
         }
 
+        /**
+         * @return the length of this span of text
+         */
         public int width() {
             return content.length();
         }
 
+        /**
+         * @return the content of span, surrounded with open and close escape-sequences
+         */
         public String renderAnsi() {
-            AnsiStyle parentStyle = parentStyle();
-            AnsiStyle styleOpen = style()
-                .map(parentStyle.builder()::apply)
-                .map(AnsiStyle.Builder::build)
-                .orElse(empty());
-            AnsiStyle styleClose = style()
-                .map(parentStyle.builder()::reset)
-                .map(AnsiStyle.Builder::build)
-                .orElse(empty());
-            return styleOpen.renderAnsi() + content() + styleClose.renderAnsi();
+            return styleOpen().renderAnsi() + content() + styleClose().renderAnsi();
         }
 
+        /**
+         * @return dump the {@link AnsiText.Span} object for debug purposes
+         */
         public String dump() {
             return format(":: - span width=%3d |%-30s<|%s|>", content.length(), style.dump(), content);
         }
     }
 
+    /**
+     * A line of multi-line {@link AnsiText} (without trailing line-separator),
+     * which consist of continues sequence of spans with different ansi-styles of any two siblings.
+     */
     public class Line {
         private final List<Span> spans = new ArrayList<>();
 
@@ -89,6 +113,9 @@ public class AnsiText implements AnsiStyle.Holder {
             return spans().map(Span::renderAnsi).collect(joining());
         }
 
+        /**
+         * @return dump the {@link AnsiText.Line} object for debug purposes
+         */
         public String dump() {
             if (spans.isEmpty()) {
                 return ":: empty line ::";
@@ -115,19 +142,30 @@ public class AnsiText implements AnsiStyle.Holder {
         this.lines.addAll(lines);
     }
 
-    @Override
+    /**
+     * @return an optional global ansi-style within this ansi-text
+     */
     public Optional<AnsiStyle> style() {
         return Optional.ofNullable(style);
     }
 
+    /**
+     * @return the lines of this ansi-text (each consista of spans)
+     */
     public List<Line> lines() {
         return unmodifiableList(this.lines);
     }
 
+    /**
+     * @return ansi-text, which is properly decorated with ansi-sequences
+     */
     public String renderAnsi() {
         return lines.stream().map(Line::renderAnsi).collect(joining(lineSeparator()));
     }
 
+    /**
+     * @return dump the {@link AnsiText} object for debug purposes
+     */
     public String dump() {
         if (lines.isEmpty()) {
             return "~~ empty ansi-text ~~";
@@ -137,6 +175,11 @@ public class AnsiText implements AnsiStyle.Holder {
         }
     }
 
+    /**
+     * Creates a new empty line for further adding the spans to.
+     *
+     * @return this object as a builder for further mutations
+     */
     public AnsiText newLine() {
         lines.add(new Line());
         return this;
@@ -149,6 +192,11 @@ public class AnsiText implements AnsiStyle.Holder {
         return lines.getLast();
     }
 
+    /**
+     * Adds a span to current line (the initial one or the last one that was added by {@link #newLine()}).
+     *
+     * @return this object as a builder for further mutations
+     */
     public AnsiText span(String content) {
         currentLine().span(styleBuilder.build(), content);
         return this;
