@@ -15,7 +15,6 @@ import static java.lang.System.lineSeparator;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
-import static org.apache.commons.text.StringEscapeUtils.escapeJava;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.empty;
 
 @Slf4j
@@ -51,7 +50,16 @@ public class AnsiText implements AnsiStyle.Holder {
         }
 
         public String renderAnsi() {
-            return renderStyle().renderAnsi() + content();
+            AnsiStyle parentStyle = parentStyle();
+            AnsiStyle styleOpen = style()
+                .map(parentStyle.builder()::apply)
+                .map(AnsiStyle.Builder::build)
+                .orElse(empty());
+            AnsiStyle styleClose = style()
+                .map(parentStyle.builder()::reset)
+                .map(AnsiStyle.Builder::build)
+                .orElse(empty());
+            return styleOpen.renderAnsi() + content() + styleClose.renderAnsi();
         }
 
         public String dump() {
@@ -77,9 +85,8 @@ public class AnsiText implements AnsiStyle.Holder {
         }
 
         public String renderAnsi() {
-            String lineAnsi = spans().map(Span::renderAnsi).collect(joining());
-            log.debug("lineAnsi = " + escapeJava(lineAnsi));
-            return lineAnsi;
+            // TODO: optimize intermediate close/open
+            return spans().map(Span::renderAnsi).collect(joining());
         }
 
         public String dump() {

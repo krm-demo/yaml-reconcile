@@ -3,6 +3,10 @@ package org.krmdemo.yaml.reconcile.test.ansi;
 import org.junit.jupiter.api.Test;
 import org.krmdemo.yaml.reconcile.ansi.AnsiText;
 
+import static java.lang.System.lineSeparator;
+import static org.apache.commons.text.StringEscapeUtils.escapeJava;
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class AnsiTextTest {
 
 //    public static void main(String[] args) {
@@ -19,22 +23,30 @@ public class AnsiTextTest {
     void testStyleOpen() {
         String threeLines = """
               the first line 1 with 2 leading spaces
-            this is @|red the red fragment|@ without leading space or semicolon;
-            this is @|red;the same red one |@with neither leading space nor semicolon again;
-            this is @|red,bold; red and bold fragment|@ with leading space;
-            and @|underline,blue ;underline and blue fragment|@ fragment with leading semicolon;
+            this is '@|red the red fragment|@' without leading space or semicolon;
+            this is '@|red;the same red one |@'with neither leading space nor semicolon again;
+            this is '@|red,bold; red and bold fragment|@' with leading space;
+            and '@|underline,blue ;underline and blue fragment|@' fragment with leading semicolon;
             """;
         System.out.println(threeLines);
         AnsiText ansiText = AnsiText.ansiText(threeLines);
-        System.out.println("========== renderAnsi: ======================");
-        System.out.println(ansiText.renderAnsi());
-        System.out.println("========== dump lines: ======================");
+        System.out.println("========== dump lines: ==========================================");
         System.out.println(ansiText.dump());
-//        assertThat(ansiText.renderLinesAnsi().collect(joining(lineSeparator()))).isEqualTo(threeLines);
-//        System.out.println("========== dump spans: ======================");
-//        System.out.println(ansiText.dumpSpans());
-//        String expectedSpans = escapeJava(threeLines).replaceAll("[|@]", "");
-//        String actualSpans = ansiText.renderSpansAnsi().collect(joining()).replaceAll("\\|@", "");
-//        assertThat(actualSpans).isEqualTo(expectedSpans);
+        System.out.println("========== renderAnsi: ==========================================");
+        System.out.println(ansiText.renderAnsi());
+        System.out.println("========== renderAnsi (escapeJava with line-separator): =========");
+        System.out.println(escapeJavaWithLS(ansiText));
+
+        assertThat(ansiText.renderAnsi()).isEqualTo("""
+              the first line 1 with 2 leading spaces
+            this is '\u001B[31mthe red fragment\u001B[39m' without leading space or semicolon;
+            this is '\u001B[31mthe same red one \u001B[39m'with neither leading space nor semicolon again;
+            this is '\u001B[1;31m red and bold fragment\u001B[22;39m' with leading space;
+            and '\u001B[4;34m;underline and blue fragment\u001B[24;39m' fragment with leading semicolon;
+            """);
+    }
+
+    private static String escapeJavaWithLS(AnsiText text) {
+        return escapeJava(text.renderAnsi()).replaceAll("\\\\n", lineSeparator());
     }
 }

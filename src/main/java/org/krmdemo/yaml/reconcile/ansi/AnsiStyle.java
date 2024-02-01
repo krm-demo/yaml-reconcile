@@ -3,19 +3,14 @@ package org.krmdemo.yaml.reconcile.ansi;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.BinaryOperator;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
-import static java.util.Collections.emptyMap;
-import static java.util.Collections.unmodifiableMap;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
-import static org.apache.commons.text.StringEscapeUtils.escapeJava;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.Family.ALL;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.lookupByName;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.lookupResetFamily;
 
 /**
  * Text-style of ansi-text that is supported by most of ansi-terminals (including colors, intensity, etc...)
@@ -44,33 +39,42 @@ public class AnsiStyle {
         }
 
         /**
-         * @return a stream of styles that should be applied (from top-parent to this one)
+         * @return a stream of styles that should be applied (from top-parent to this one EXCLUSIVE)
          */
-        default Stream<AnsiStyle> styleChain() {
-            Stream<AnsiStyle> parentChain = parent().stream().flatMap(Holder::styleChain);
-            return Stream.concat(parentChain, style().stream());
+        default Stream<AnsiStyle> parentChain() {
+            return parent().stream().flatMap(Holder::styleChain);
         }
 
-        default AnsiStyle renderStyle() {
+        /**
+         * @return a stream of styles that should be applied (from top-parent to this one INCLUSIVE)
+         */
+        default Stream<AnsiStyle> styleChain() {
+            return Stream.concat(parentChain(), style().stream());
+        }
+
+        default AnsiStyle parentStyle() {
             Builder builder = empty().builder();
-            styleChain().flatMap(AnsiStyle::attrs).forEach(builder::accept);  // <-- think about reduce
-            log.debug(getClass().getSimpleName() + ".renderStyle() --> " + builder.build());
+            parentChain().flatMap(AnsiStyle::attrs).forEach(builder::accept);  // <-- think about reduce
             return builder.build();
         }
     }
 
-    private final Map<AnsiStyleAttr.Family, AnsiStyleAttr> attrs;  // <-- think about unmodifiable List
+    private final List<AnsiStyleAttr> attrs;  // <-- think about unmodifiable List
 
     private AnsiStyle() {
-        this.attrs = emptyMap();
+        this.attrs = emptyList();
     }
 
-    private AnsiStyle(Map<AnsiStyleAttr.Family, AnsiStyleAttr> attrs) {
-        this.attrs = unmodifiableMap(attrs);
+    private AnsiStyle(Stream<AnsiStyleAttr> attrsStream) {
+        this.attrs = attrsStream.toList();
+    }
+
+    public boolean isEmpty() {
+        return attrs.isEmpty();
     }
 
     public Stream<AnsiStyleAttr> attrs() {
-        return attrs.values().stream().sorted();
+        return attrs.stream();
     }
 
     public Stream<String> ansiCodeSeq() {
@@ -119,7 +123,7 @@ public class AnsiStyle {
         }
 
         public AnsiStyle build() {
-            return new AnsiStyle(new TreeMap<>(attrsMap));
+            return new AnsiStyle(attrsMap.values().stream());
         }
 
         public Builder accept(AnsiStyleAttr styleAttr) {
@@ -129,6 +133,21 @@ public class AnsiStyle {
 
         public Builder acceptByName(String styleAttrName) {
             lookupByName(styleAttrName).ifPresent(this::accept);
+            return this;
+        }
+
+        public Builder apply(AnsiStyle ansiStyleToApply) {
+            ansiStyleToApply.attrs()
+                .filter(attr -> attr.operation() == AnsiStyleAttr.Operation.apply)
+                .forEach(this::accept);
+            return this;
+        }
+
+        public Builder reset(AnsiStyle ansiStyleToReset) {
+            ansiStyleToReset.attrs()
+                .filter(attr -> attr.operation() == AnsiStyleAttr.Operation.apply)
+                .flatMap(attr -> lookupResetFamily(attr.family()).stream())
+                .forEach(this::accept);
             return this;
         }
     }

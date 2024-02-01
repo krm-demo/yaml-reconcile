@@ -85,10 +85,33 @@ public class AnsiStyleAttr implements Comparable<AnsiStyleAttr> {
         this.family = family;
         this.name = name;
         this.ansiCode = ansiCode;
-        attrByName.put(name(), this);
+    }
+
+    private static AnsiStyleAttr ansiStyleAttr(Operation operation, Family family, String name, int ansiCode) {
+        return new AnsiStyleAttr(operation, family, name, ansiCode);
+    }
+
+    private static AnsiStyleAttr createAndRegister(Operation operation, Family family, int ansiCode) {
+        return createAndRegister(operation, family, family.familyName, ansiCode);
+    }
+
+    private static AnsiStyleAttr createAndRegister(Operation operation, Family family, String name, int ansiCode) {
+        AnsiStyleAttr styleAttr = ansiStyleAttr(operation, family, name, ansiCode);
+        AnsiStyleAttr existing = attrByName.put(styleAttr.name(), styleAttr);
+        if (existing != null) {
+            log.warn(format("register in 'attrByName' twice - %s over %s", styleAttr, existing));
+        }
+        if (operation == Operation.reset) {
+            AnsiStyleAttr existingReset = resetByFamily.put(family, styleAttr);
+            if (existingReset != null) {
+                log.warn(format("register in 'resetByFamily' twice - %s over %s", styleAttr, existingReset));
+            }
+        }
+        return styleAttr;
     }
 
     private final static Map<String, AnsiStyleAttr> attrByName = new TreeMap<>();
+    private final static EnumMap<Family, AnsiStyleAttr> resetByFamily = new EnumMap<>(Family.class);
 
     public static Optional<AnsiStyleAttr> lookupByName(String styleAttrName) {
         AnsiStyleAttr styleAttr = attrByName.get(styleAttrName);
@@ -97,6 +120,14 @@ public class AnsiStyleAttr implements Comparable<AnsiStyleAttr> {
 //            log.warn("available attributes are: \n" + attrByName.entrySet().stream()
 //                .map(e -> format("'%s' ---> %s", e.getKey(), e.getValue()))
 //                .collect(Collectors.joining(lineSeparator())));
+        }
+        return Optional.ofNullable(styleAttr);
+    }
+
+    public static Optional<AnsiStyleAttr> lookupResetFamily(Family family) {
+        AnsiStyleAttr styleAttr = resetByFamily.get(family);
+        if (styleAttr == null) {
+            log.warn("could not lookup reset-attribute by family '" + family + "'");
         }
         return Optional.ofNullable(styleAttr);
     }
@@ -138,7 +169,7 @@ public class AnsiStyleAttr implements Comparable<AnsiStyleAttr> {
         new AnsiStyleAttr(Operation.reset, Family.ALL, 0);
 
     private static AnsiStyleAttr resetAttr(Family family, int ansiCode) {
-        return new AnsiStyleAttr(Operation.reset, family, ansiCode);
+        return createAndRegister(Operation.reset, family, ansiCode);
     }
 
     public static AnsiStyleAttr RESET_BOLD = resetAttr(BOLD, 22);
@@ -151,7 +182,7 @@ public class AnsiStyleAttr implements Comparable<AnsiStyleAttr> {
     public static AnsiStyleAttr RESET_STRIKETHROUGH = resetAttr(STRIKETHROUGH, 29);
 
     private static AnsiStyleAttr applyAttr(Family family, int ansiCode) {
-        return new AnsiStyleAttr(Operation.apply, family, ansiCode);
+        return createAndRegister(Operation.apply, family, ansiCode);
     }
 
     public static AnsiStyleAttr APPLY_BOLD = applyAttr(BOLD, 1);
@@ -164,9 +195,9 @@ public class AnsiStyleAttr implements Comparable<AnsiStyleAttr> {
     public static AnsiStyleAttr APPLY_STRIKETHROUGH = applyAttr(STRIKETHROUGH, 9);
 
     public static AnsiStyleAttr RESET_FG =
-        new AnsiStyleAttr(Operation.reset, FOREGROUND, "", 39);
+        createAndRegister(Operation.reset, FOREGROUND, "", 39);
     public static AnsiStyleAttr RESET_BG =
-        new AnsiStyleAttr(Operation.reset, BACKGROUND, "", 49);
+        createAndRegister(Operation.reset, BACKGROUND, "", 49);
 
     public enum Color {
 
@@ -195,8 +226,8 @@ public class AnsiStyleAttr implements Comparable<AnsiStyleAttr> {
 
         Color(int fgCode, int bgCode, String colorName) {
             this.colorName = colorName;
-            this.fg = new AnsiStyleAttr(Operation.apply, FOREGROUND, colorName, fgCode);
-            this.bg = new AnsiStyleAttr(Operation.apply, BACKGROUND, colorName, bgCode);
+            this.fg = createAndRegister(Operation.apply, FOREGROUND, colorName, fgCode);
+            this.bg = createAndRegister(Operation.apply, BACKGROUND, colorName, bgCode);
         }
     }
 
