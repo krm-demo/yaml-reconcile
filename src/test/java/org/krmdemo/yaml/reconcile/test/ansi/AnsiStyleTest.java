@@ -128,14 +128,14 @@ public class AnsiStyleTest {
             .accept(fg(45))
             .accept(RESET_ITALIC)
             .build();
-        assertThat(styleDirect.renderAnsi()).isEqualTo("\u001b[1;23;38;5;45;48;5;123;m");
+        assertThat(styleDirect.renderAnsi()).isEqualTo("\u001b[1;23;38;5;45;48;5;123m");
         assertThat(styleDirect.dump()).isEqualTo("ansi-style<bold,!italic,fg(#2D),bg(#7B)>");
 
         AnsiStyle styleLookup = empty().builder()
             .acceptByName("underline")
             .acceptByName("strikethrough")
             .build();
-        assertThat(styleLookup.renderAnsi()).isEqualTo("\u001b[4;9;m");
+        assertThat(styleLookup.renderAnsi()).isEqualTo("\u001b[4;9m");
         assertThat(styleLookup.dump()).isEqualTo("ansi-style<underline,strikethrough>");
     }
 }

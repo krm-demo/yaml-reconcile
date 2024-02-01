@@ -15,6 +15,7 @@ import static java.lang.System.lineSeparator;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
+import static org.apache.commons.text.StringEscapeUtils.escapeJava;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.empty;
 
 @Slf4j
@@ -24,10 +25,6 @@ public class AnsiText implements AnsiStyle.Holder {
 
         private final AnsiStyle style;
         private final String content;
-
-        private Span(String content) {
-            this(empty(), content);
-        }
 
         private Span(AnsiStyle style, String content) {
             requireNonNull(content, "span's content must be NOT null");
@@ -54,8 +51,7 @@ public class AnsiText implements AnsiStyle.Holder {
         }
 
         public String renderAnsi() {
-            // completely ignore the styles at the moment
-            return content();
+            return renderStyle().renderAnsi() + content();
         }
 
         public String dump() {
@@ -81,7 +77,9 @@ public class AnsiText implements AnsiStyle.Holder {
         }
 
         public String renderAnsi() {
-            return spans().map(Span::renderAnsi).collect(joining());
+            String lineAnsi = spans().map(Span::renderAnsi).collect(joining());
+            log.debug("lineAnsi = " + escapeJava(lineAnsi));
+            return lineAnsi;
         }
 
         public String dump() {
@@ -95,7 +93,6 @@ public class AnsiText implements AnsiStyle.Holder {
     }
 
     private final AnsiStyle style;
-
 
     private final List<Line> lines = new ArrayList<>();
 

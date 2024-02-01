@@ -4,11 +4,9 @@ package org.krmdemo.yaml.reconcile.ansi;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.lang.String.valueOf;
-import static java.lang.System.lineSeparator;
 import static java.util.Arrays.stream;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.Family.*;
@@ -209,12 +207,16 @@ public class AnsiStyleAttr implements Comparable<AnsiStyleAttr> {
         return color.fg;
     }
 
+    private static final String DELIMITER_ANSI_COLOR = ";";
+    private static final String SUB_PREFIX_COLOR_256 = DELIMITER_ANSI_COLOR + 5 + DELIMITER_ANSI_COLOR;
+    private static final String SUB_PREFIX_COLOR_RGB = DELIMITER_ANSI_COLOR + 2 + DELIMITER_ANSI_COLOR;
+
     public static AnsiStyleAttr fg(int color256) {
         String codeStr = byteHex(color256, "The value of foreground 256-color must be in range [0..255], but it was %d");
         return new AnsiStyleAttr(Operation.apply, FOREGROUND, "#" + codeStr, 38) {
             @Override
             public String ansiCodeSeq() {
-                return super.ansiCodeSeq() + ";5;" + color256;
+                return super.ansiCodeSeq() + SUB_PREFIX_COLOR_256 + color256;
             }
         };
     }
@@ -224,7 +226,7 @@ public class AnsiStyleAttr implements Comparable<AnsiStyleAttr> {
         return new AnsiStyleAttr(Operation.apply, BACKGROUND, "#" + codeStr, 48) {
             @Override
             public String ansiCodeSeq() {
-                return super.ansiCodeSeq() + ";5;" + color256;
+                return super.ansiCodeSeq() + SUB_PREFIX_COLOR_256 + color256;
             }
         };
     }
@@ -234,11 +236,11 @@ public class AnsiStyleAttr implements Comparable<AnsiStyleAttr> {
         String greenStr = byteHex(green, "Green part of foreground true-color must be in range [0..255], but it was %d");
         String blueStr = byteHex(blue, "Blue part of foreground true-color must be in range [0..255], but it was %d");
         String nameHex = format("#%s%s%s", redStr, greenStr, blueStr);
-        String colorSeq = String.join(";", "2", valueOf(red), valueOf(green), valueOf(blue));
+        String colorSeq = String.join(DELIMITER_ANSI_COLOR, valueOf(red), valueOf(green), valueOf(blue));
         return new AnsiStyleAttr(Operation.apply, FOREGROUND, nameHex, 38) {
             @Override
             public String ansiCodeSeq() {
-                return super.ansiCodeSeq() + ";" + colorSeq;
+                return super.ansiCodeSeq() + SUB_PREFIX_COLOR_RGB + colorSeq;
             }
         };
     }
@@ -248,11 +250,11 @@ public class AnsiStyleAttr implements Comparable<AnsiStyleAttr> {
         String greenStr = byteHex(green, "Green part of background true-color must be in range [0..255], but it was %d");
         String blueStr = byteHex(blue, "Blue part of background true-color must be in range [0..255], but it was %d");
         String nameHex = format("#%s%s%s", redStr, greenStr, blueStr);
-        String colorSeq = String.join(";", "2", valueOf(red), valueOf(green), valueOf(blue));
+        String colorSeq = String.join(DELIMITER_ANSI_COLOR, valueOf(red), valueOf(green), valueOf(blue));
         return new AnsiStyleAttr(Operation.apply, BACKGROUND, nameHex, 48) {
             @Override
             public String ansiCodeSeq() {
-                return super.ansiCodeSeq() + ";" + colorSeq;
+                return super.ansiCodeSeq() + SUB_PREFIX_COLOR_RGB + colorSeq;
             }
         };
     }
@@ -268,9 +270,5 @@ public class AnsiStyleAttr implements Comparable<AnsiStyleAttr> {
         stream(Color.values()).forEach(color -> {
             attrByName.put(color.colorName, color.fg);
         });
-//        log.info("after adding colors available attributes are: \n" +
-//                 attrByName.entrySet().stream()
-//                     .map(e -> format("'%s' ---> %s", e.getKey(), e.getValue()))
-//                     .collect(Collectors.joining(lineSeparator())));
     }
 }

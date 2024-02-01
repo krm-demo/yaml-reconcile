@@ -45,3 +45,6 @@ print(f"output is captured and saved in '{red_fragment_svg_file_name}'")
 # This is red fragment of text
 # >>> ^D
 
+print('\\x1b   : This is \x1b[31mred fragment\x1b[39m of text')
+print('\\033   : This is \033[31mred fragment\033[39m of text')
+print('\\u001b : This is \u001B[31mred fragment\u001B[39m of text')
