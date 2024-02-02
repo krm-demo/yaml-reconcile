@@ -15,7 +15,9 @@ import static java.lang.System.lineSeparator;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiRenderContext.renderCtx;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.empty;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.resetAll;
 
 /**
  * This class represents the multi-line text with global outer ansi-style and sequential fragments
@@ -109,8 +111,19 @@ public class AnsiText implements AnsiStyle.Holder {
         }
 
         public String renderAnsi() {
-            // TODO: optimize intermediate close/open
-            return spans().map(Span::renderAnsi).collect(joining());
+            if (renderCtx().siblingStylesSquash()) {
+                // TODO: looks like style-builder should be put into render-context
+                StringBuilder sb = new StringBuilder();
+                spans().forEach(span -> {
+                    sb.append(span.styleOpen().renderAnsi());
+                    sb.append(span.content());
+                    sb.append(span.styleClose().renderAnsi());
+                });
+                sb.append(resetAll().renderAnsi());
+                return sb.toString();
+            } else {
+                return spans().map(Span::renderAnsi).collect(joining()) + resetAll().renderAnsi();
+            }
         }
 
         /**

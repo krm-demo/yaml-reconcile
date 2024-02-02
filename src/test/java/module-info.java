@@ -12,7 +12,6 @@ module org.krmdemo.yaml.reconcile.test {
     requires org.junit.platform.engine;
     requires org.junit.platform.launcher;
     requires org.assertj.core;
-    requires JColor;
 
     exports org.krmdemo.yaml.reconcile.test;
     opens org.krmdemo.yaml.reconcile.test to org.junit.platform.commons;

@@ -8,6 +8,7 @@ import java.util.stream.Stream;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.RESET_ALL;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.lookupByName;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.lookupResetFamily;
 
@@ -16,8 +17,6 @@ import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.lookupResetFamily;
  */
 @Slf4j
 public class AnsiStyle {
-
-    private static final AnsiStyle EMPTY = new AnsiStyle();
 
     private static final String DELIMITER_ANSI_SEQ = ";";
 
@@ -151,11 +150,21 @@ public class AnsiStyle {
         return new Builder();
     }
 
+    private static final AnsiStyle STYLE_EMPTY = new AnsiStyle();
+    private static final AnsiStyle STYLE_RESET_ALL = new AnsiStyle(Stream.of(RESET_ALL));
+
     /**
      * @return an instance of empty style
      */
     public static AnsiStyle empty() {
-        return EMPTY;
+        return STYLE_EMPTY;
+    }
+
+    /**
+     * @return an instance of style that reset all previously applied styles
+     */
+    public static AnsiStyle resetAll() {
+        return STYLE_RESET_ALL;
     }
 
     /**

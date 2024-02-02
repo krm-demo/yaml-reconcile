@@ -31,7 +31,6 @@
     <org.junit.platform.version>1.10.1</org.junit.platform.version>
     <org.assertj.version>3.25.1</org.assertj.version>
     <snakeyaml-engine.version>2.7</snakeyaml-engine.version>
-    <com.diogonunes.jcolor.version>5.2.0</com.diogonunes.jcolor.version>
     <maven.compiler.release>${java.version}</maven.compiler.release>
     <maven.compiler.plugin.version>3.12.1</maven.compiler.plugin.version>
     <maven.resources.plugin.version>3.3.0</maven.resources.plugin.version>
@@ -120,12 +119,6 @@
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
       <version>${ch.qos.logback.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.diogonunes</groupId>
-      <artifactId>JColor</artifactId>
-      <version>${com.diogonunes.jcolor.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

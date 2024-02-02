@@ -45,7 +45,7 @@ public class ToStringTest {
     @Test void testEmptyKeyValue() {
         assertAll("prohibited cases",
             () -> assertThatNullPointerException().isThrownBy(() -> keyValue(null, null)),
-            () -> assertThatNullPointerException().isThrownBy(() -> keyValue("aome-key", null)),
+            () -> assertThatNullPointerException().isThrownBy(() -> keyValue("some-key", null)),
             () -> assertThatNullPointerException().isThrownBy(() -> keyValueScalar(null, "some-value")),
             () -> assertThatIllegalArgumentException().isThrownBy(() -> keyValueScalar("a\b\\c", "some-value"))
         );
