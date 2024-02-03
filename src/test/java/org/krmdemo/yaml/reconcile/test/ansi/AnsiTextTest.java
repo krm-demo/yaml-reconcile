@@ -146,7 +146,22 @@ public class AnsiTextTest {
             String ansiTextFmt = format("@|%s %s|@", fmtSt, fmtSt);
             AnsiText ansiText = AnsiText.ansiText(ansiTextFmt);
             System.out.printf("%s ---> '%s'%n", "'" + ansiTextFmt + "'", ansiText.renderAnsi());
-            System.out.println(ansiText.dump());
+            //System.out.println(ansiText.dump());
+            // TODO: make assertions
+        });
+    }
+
+    @Test void testColorRGB() {
+        asList(
+            "fg(#FF0000)", "fg(#00FF00)", "fg(#0000FF)",
+            "fg(#56789A)", "fg(#123DEF)",
+            "bg(#ABCDEF)", "bold,bg(#ABCDEF)", "bg(#ABCDEF),fg(magenta)"
+        ). forEach(fmtSt -> {
+            String ansiTextFmt = format("@|%s %s|@", fmtSt, fmtSt);
+            AnsiText ansiText = AnsiText.ansiText(ansiTextFmt);
+            System.out.printf("%s ---> '%s'%n", "'" + ansiTextFmt + "'", ansiText.renderAnsi());
+            //System.out.println(ansiText.dump());
+            // TODO: make assertions
         });
     }
 

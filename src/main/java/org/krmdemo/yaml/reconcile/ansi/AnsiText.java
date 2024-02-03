@@ -330,7 +330,7 @@ public class AnsiText implements AnsiStyle.Holder {
 
         @Override
         public void exitStyleOpen(AnsiTextParser.StyleOpenContext ctx) {
-            log.debug(format("|<---  exitStyleOpen - stack (%d) %s", styleStack.size(), styleBuilder.build()));
+            log.trace(format("|<---  exitStyleOpen - stack (%d) %s", styleStack.size(), styleBuilder.build()));
         }
 
         @Override
@@ -343,7 +343,7 @@ public class AnsiText implements AnsiStyle.Holder {
             if (!styleStack.isEmpty()) {
                 styleBuilder = styleStack.removeLast().builder();
             }
-            log.debug(format("|<---  exitStyleClose - stack (%d) %s", styleStack.size(), styleBuilder.build()));
+            log.trace(format("|<---  exitStyleClose - stack (%d) %s", styleStack.size(), styleBuilder.build()));
         }
 
         @Override
@@ -354,35 +354,59 @@ public class AnsiText implements AnsiStyle.Holder {
         @Override
         public void exitStyleAttrName(AnsiTextParser.StyleAttrNameContext ctx) {
             styleBuilder.acceptByName(ctx.getText());
-            log.debug(format("|<----  exitStyleAttrName - '%s', style after: %s", ctx.getText(), styleBuilder.build()));
+            log.trace(format("|<----  exitStyleAttrName - '%s', style after: %s", ctx.getText(), styleBuilder.build()));
         }
 
         @Override
         public void exitFgColorName(AnsiTextParser.FgColorNameContext ctx) {
             styleBuilder.acceptByName(ctx.getText());
-            log.debug(format("|<----  exitFgColorName - '%s', style after: %s", ctx.getText(), styleBuilder.build()));
+            log.trace(format("|<----  exitFgColorName - '%s', style after: %s", ctx.getText(), styleBuilder.build()));
         }
 
         @Override
         public void exitFgColor256(AnsiTextParser.FgColor256Context ctx) {
-            int color256 = fromHex256(ctx.getText(),
+            int color256 = fromHex(ctx.getText(), patternHex256,
                 "could not convert the '#'-prefixed hex-value of foreground 256-color '%s'");
             styleBuilder.accept(AnsiStyleAttr.fg(color256));
-            log.debug(format("|<----  exitFgColor256 - '%s', style after: %s", ctx.getText(), styleBuilder.build()));
+            log.trace(format("|<----  exitFgColor256 - '%s', style after: %s", ctx.getText(), styleBuilder.build()));
         }
 
         @Override
         public void exitBgColorName(AnsiTextParser.BgColorNameContext ctx) {
             styleBuilder.acceptByName("bg(" + ctx.getText() + ")");
-            log.debug(format("|<----  exitBgColorName - '%s', style after: %s", ctx.getText(), styleBuilder.build()));
+            log.trace(format("|<----  exitBgColorName - '%s', style after: %s", ctx.getText(), styleBuilder.build()));
         }
 
         @Override
         public void exitBgColor256(AnsiTextParser.BgColor256Context ctx) {
-            int color256 = fromHex256(ctx.getText(),
+            int color256 = fromHex(ctx.getText(), patternHex256,
                 "could not convert the '#'-prefixed hex-value of background 256-color '%s'");
             styleBuilder.accept(AnsiStyleAttr.bg(color256));
-            log.debug(format("|<----  exitBgColor256 - '%s', style after: %s", ctx.getText(), styleBuilder.build()));
+            log.trace(format("|<----  exitBgColor256 - '%s', style after: %s", ctx.getText(), styleBuilder.build()));
+        }
+
+        @Override
+        public void exitFgColorRGB(AnsiTextParser.FgColorRGBContext ctx) {
+            int colorRGB = fromHex(ctx.getText(), patternHexRGB,
+                "could not convert the '#'-prefixed hex-value of foreground RGB-color '%s'");
+            int red =   (colorRGB & 0xFF0000) >> 16;
+            int green = (colorRGB & 0x00FF00) >> 8;
+            int blue =   colorRGB & 0x0000FF;
+            styleBuilder.accept(AnsiStyleAttr.fg(red, green, blue));
+            log.trace(format("|<----  exitFgColorRGB - '%s', style after: %s #%X rgb(%d, %d, %d)",
+                ctx.getText(), styleBuilder.build(), colorRGB, red, green, blue));
+        }
+
+        @Override
+        public void exitBgColorRGB(AnsiTextParser.BgColorRGBContext ctx) {
+            int colorRGB = fromHex(ctx.getText(), patternHexRGB,
+                "could not convert the '#'-prefixed hex-value of background RGB-color '%s'");
+            int red =   (colorRGB & 0xFF0000) >> 16;
+            int green = (colorRGB & 0x00FF00) >> 8;
+            int blue =   colorRGB & 0x0000FF;
+            styleBuilder.accept(AnsiStyleAttr.bg(red, green, blue));
+            log.trace(format("|<----  exitBgColorRGB - '%s', style after: %s #%X rgb(%d, %d, %d)",
+                ctx.getText(), styleBuilder.build(), colorRGB, red, green, blue));
         }
 
         @Override
@@ -394,16 +418,19 @@ public class AnsiText implements AnsiStyle.Holder {
         }
 
         private final static Pattern patternHex256 = Pattern.compile("#([0-9A-Fa-f]{2})");
+        private final static Pattern patternHexRGB = Pattern.compile("#([0-9A-Fa-f]{6})");
 
-        private static int fromHex256(String strColor256, String fmtErrMsg) {
-            Matcher matcher = patternHex256.matcher(strColor256);
+        private static int fromHex(String strColor, Pattern pattern, String fmtErrMsg) {
+            Matcher matcher = pattern.matcher(strColor);
             if (matcher.find()) {
-                return Integer.valueOf(matcher.group(1), 16);
+                int returnValue = Integer.valueOf(matcher.group(1), 16);
+                log.trace(format("fromHex('%s', '%s') = 0x%X", strColor, pattern.pattern(), returnValue));
+                return returnValue;
             } else {
-                throw new IllegalArgumentException(format(fmtErrMsg, strColor256));
+                throw new IllegalArgumentException(format(fmtErrMsg, strColor));
             }
         }
-    }
+   }
 
 //    private static String escapeAll(String str) {
 //        return str.chars().boxed().map(c -> format("\\u%04x", c)).collect(joining());
