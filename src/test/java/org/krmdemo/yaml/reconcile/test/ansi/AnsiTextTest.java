@@ -9,7 +9,9 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.lang.String.format;
 import static java.lang.System.lineSeparator;
+import static java.util.Arrays.asList;
 import static org.apache.commons.text.StringEscapeUtils.escapeJava;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiRenderCtx.renderCtx;
@@ -134,6 +136,18 @@ public class AnsiTextTest {
             kv(207, RESET_ALL.ansiCodeSeq()),
             kv(212, RESET_ALL.ansiCodeSeq()),
             kv(216, RESET_ALL.ansiCodeSeq()));
+    }
+
+    @Test void testColor256() {
+        asList(
+            "cyan", "fg(cyan)", "fg(#AA)",
+            "bg(^yellow)", "bg(#FE)", "fg(#AA),bg(#FE)"
+        ). forEach(fmtSt -> {
+            String ansiTextFmt = format("@|%s %s|@", fmtSt, fmtSt);
+            AnsiText ansiText = AnsiText.ansiText(ansiTextFmt);
+            System.out.printf("%s ---> '%s'%n", "'" + ansiTextFmt + "'", ansiText.renderAnsi());
+            System.out.println(ansiText.dump());
+        });
     }
 
     private static String escapeJavaWithLS(AnsiText text) {
