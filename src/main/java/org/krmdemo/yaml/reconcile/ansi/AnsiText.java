@@ -15,8 +15,9 @@ import static java.lang.System.lineSeparator;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
-import static org.krmdemo.yaml.reconcile.ansi.AnsiRenderContext.renderCtx;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiRenderCtx.renderCtx;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.empty;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.emptyBuilder;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.resetAll;
 
 /**
@@ -56,7 +57,6 @@ public class AnsiText implements AnsiStyle.Holder {
          * @return the ansy-style of this span of text
          */
         public Optional<AnsiStyle> style() {
-            // effective style could be evaluated here or inside AnsiStyle
             return Optional.ofNullable(style);
         }
 
@@ -100,30 +100,43 @@ public class AnsiText implements AnsiStyle.Holder {
             return spans.stream();
         }
 
-        public Span span(AnsiStyle style, String content) {
+        public void appendSpan(AnsiStyle style, String content) {
             Span newSpan = new Span(style, content);
             spans.add(newSpan);
-            return newSpan;
         }
 
         public int width() {
             return spans().mapToInt(Span::width).sum();
         }
 
-        public String renderAnsi() {
-            if (renderCtx().siblingStylesSquash()) {
-                // TODO: looks like style-builder should be put into render-context
+        public String renderSpans() {
+            if (renderCtx().isSiblingStylesSquash()) {
                 StringBuilder sb = new StringBuilder();
+                renderCtx().setLineStyleBuilder(emptyBuilder());
                 spans().forEach(span -> {
-                    sb.append(span.styleOpen().renderAnsi());
+                    span.style().map(renderCtx().getLineStyleBuilder()::apply);
+                    sb.append(renderCtx().getLineStyleBuilder().build().renderAnsi());
                     sb.append(span.content());
-                    sb.append(span.styleClose().renderAnsi());
+                    renderCtx().setLineStyleBuilder(emptyBuilder());
+                    span.style().map(renderCtx().getLineStyleBuilder()::reset);
                 });
-                sb.append(resetAll().renderAnsi());
+                sb.append(renderCtx().getLineStyleBuilder().build().renderAnsi());
                 return sb.toString();
             } else {
-                return spans().map(Span::renderAnsi).collect(joining()) + resetAll().renderAnsi();
+                return spans().map(Span::renderAnsi).collect(joining());
             }
+        }
+
+        public String renderAnsi() {
+            StringBuilder sb = new StringBuilder();
+            if (renderCtx().isLinePrefixResetAll()) {
+                sb.append(resetAll().renderAnsi());
+            }
+            sb.append(this.renderSpans());
+            if (renderCtx().isLineSuffixResetAll()) {
+                sb.append(resetAll().renderAnsi());
+            }
+            return sb.toString();
         }
 
         /**
@@ -211,7 +224,7 @@ public class AnsiText implements AnsiStyle.Holder {
      * @return this object as a builder for further mutations
      */
     public AnsiText span(String content) {
-        currentLine().span(styleBuilder.build(), content);
+        currentLine().appendSpan(styleBuilder.build(), content);
         return this;
     }
 

@@ -15,6 +15,7 @@ build/
 # JetBrains IDE
 .idea/
 out/
+gen/
 *.iml
 
 # Unit test reports
