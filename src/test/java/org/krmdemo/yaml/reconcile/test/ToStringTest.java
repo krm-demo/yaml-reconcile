@@ -103,7 +103,7 @@ public class ToStringTest {
     }
 
     @Test
-    @Disabled
+    @Disabled("temporary skipped, because output is very long")
     void testSystemProperties() {
         System.setProperty("junit.test.class.simple-name", this.getClass().getSimpleName());
         System.setProperty("junit.test.math.E", "" + Math.E);

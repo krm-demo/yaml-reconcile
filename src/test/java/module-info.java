@@ -9,6 +9,7 @@ module org.krmdemo.yaml.reconcile.test {
 
     requires org.krmdemo.yaml.reconcile;
     requires org.junit.jupiter.api;
+    requires org.junit.jupiter.params;
     requires org.junit.platform.engine;
     requires org.junit.platform.launcher;
     requires org.assertj.core;
