@@ -2,6 +2,7 @@ module org.krmdemo.yaml.reconcile {
     exports org.krmdemo.yaml.reconcile;
     exports org.krmdemo.yaml.reconcile.impl;
     exports org.krmdemo.yaml.reconcile.ansi;
+    exports org.krmdemo.yaml.reconcile.util;
 
     requires lombok;
     requires org.slf4j;

@@ -19,4 +19,4 @@ fragment HEX_DIGIT : [0-9a-fA-F];
 CHAR_WS : [ \t] -> popMode;
 CHAR_COMMA : ',';
 CHAR_SEMICOLON : ';' -> popMode;
-STYLE_CHAR : [0-9a-zA-Z()*_/!];
+STYLE_CHAR : [0-9a-zA-Z()*_/!^];

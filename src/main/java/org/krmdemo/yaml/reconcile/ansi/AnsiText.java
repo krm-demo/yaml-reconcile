@@ -47,7 +47,7 @@ public class AnsiText implements AnsiStyle.Holder {
         }
 
         /**
-         * @return the content of this span of text
+         * @return the content of this span of text without any styles
          */
         public String content() {
             return content;
@@ -100,9 +100,11 @@ public class AnsiText implements AnsiStyle.Holder {
             return spans.stream();
         }
 
-        public void appendSpan(AnsiStyle style, String content) {
-            Span newSpan = new Span(style, content);
-            spans.add(newSpan);
+        /**
+         * @return content of text-line without any ansi-styles
+         */
+        public String content() {
+            return spans().map(Span::content).collect(joining());
         }
 
         public int width() {
@@ -150,6 +152,11 @@ public class AnsiText implements AnsiStyle.Holder {
                     spans.size(), width(), spans().map(Span::dump).collect(joining(lineSeparator())));
             }
         }
+
+        public void appendSpan(AnsiStyle style, String content) {
+            Span newSpan = new Span(style, content);
+            spans.add(newSpan);
+        }
     }
 
     private final AnsiStyle style;
@@ -180,6 +187,13 @@ public class AnsiText implements AnsiStyle.Holder {
      */
     public List<Line> lines() {
         return unmodifiableList(this.lines);
+    }
+
+    /**
+     * @return content of text without any ansi-styles
+     */
+    public String content() {
+        return lines.stream().map(Line::content).collect(joining(lineSeparator()));
     }
 
     /**
@@ -276,32 +290,32 @@ public class AnsiText implements AnsiStyle.Holder {
     private class TextListener extends AnsiTextParserBaseListener {
         @Override
         public void enterText(AnsiTextParser.TextContext ctx) {
-            log.debug("|-> Text (lines of spans)");
+            log.trace("|-> Text (lines of spans)");
         }
 
         @Override
         public void exitText(AnsiTextParser.TextContext ctx) {
-            log.debug("|<- Text (lines of spans)");
+            log.trace("|<- Text (lines of spans)");
         }
 
         @Override
         public void enterLine(AnsiTextParser.LineContext ctx) {
-            log.debug(format("|--> enterLine - #%d", lines.size()));
+            log.trace(format("|--> enterLine - #%d", lines.size()));
         }
 
         @Override
         public void exitLine(AnsiTextParser.LineContext ctx) {
-            log.debug(format("|<--  exitLine - #%d", lines.size()));
+            log.trace(format("|<--  exitLine - #%d", lines.size()));
         }
 
         @Override
         public void enterSpan(AnsiTextParser.SpanContext ctx) {
-            log.debug(format("|---> enterSpan #%d in line #%d", currentLine().spans.size(), lines.size()));
+            log.trace(format("|---> enterSpan #%d in line #%d", currentLine().spans.size(), lines.size()));
         }
 
         @Override
         public void exitSpan(AnsiTextParser.SpanContext ctx) {
-            log.debug(format("|<---  exitSpan - '%s'", ctx.getText()));
+            log.trace(format("|<---  exitSpan - '%s'", ctx.getText()));
             span(ctx.getText());
         }
 
@@ -309,17 +323,17 @@ public class AnsiText implements AnsiStyle.Holder {
         public void enterStyleOpen(AnsiTextParser.StyleOpenContext ctx) {
             AnsiStyle parentStyle = styleBuilder.build();
             styleStack.addLast(parentStyle);
-            log.debug(format("|---> enterStyleOpen - push in stack (%d) %s", styleStack.size(), parentStyle));
+            log.trace(format("|---> enterStyleOpen - push in stack (%d) %s", styleStack.size(), parentStyle));
         }
 
         @Override
         public void exitStyleOpen(AnsiTextParser.StyleOpenContext ctx) {
-            log.debug(format("|<---  exitStyleOpen - stack (%d) %s", styleStack.size(), styleBuilder.build()));
+            log.trace(format("|<---  exitStyleOpen - stack (%d) %s", styleStack.size(), styleBuilder.build()));
         }
 
         @Override
         public void enterStyleClose(AnsiTextParser.StyleCloseContext ctx) {
-            log.debug(format("|---> enterStyleClose - push in stack (%d)", styleStack.size()));
+            log.trace(format("|---> enterStyleClose - push in stack (%d)", styleStack.size()));
         }
 
         @Override
@@ -327,18 +341,18 @@ public class AnsiText implements AnsiStyle.Holder {
             if (!styleStack.isEmpty()) {
                 styleBuilder = styleStack.removeLast().builder();
             }
-            log.debug(format("|<---  exitStyleClose - stack (%d) %s", styleStack.size(), styleBuilder.build()));
+            log.trace(format("|<---  exitStyleClose - stack (%d) %s", styleStack.size(), styleBuilder.build()));
         }
 
         @Override
         public void enterStyleAttrName(AnsiTextParser.StyleAttrNameContext ctx) {
-            log.debug(format("|----> enterStyleAttrName - style before: %s", styleBuilder.build()));
+            log.trace(format("|----> enterStyleAttrName - style before: %s", styleBuilder.build()));
         }
 
         @Override
         public void exitStyleAttrName(AnsiTextParser.StyleAttrNameContext ctx) {
             styleBuilder.acceptByName(ctx.getText());
-            log.debug(format("|<----  exitStyleAttrName - '%s', style after: %s", ctx.getText(), styleBuilder.build()));
+            log.trace(format("|<----  exitStyleAttrName - '%s', style after: %s", ctx.getText(), styleBuilder.build()));
         }
 
         @Override
