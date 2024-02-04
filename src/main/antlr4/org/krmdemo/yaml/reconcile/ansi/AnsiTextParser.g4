@@ -7,7 +7,7 @@ options {
 text : line (CRLF line)* EOF;
 line : (span | styleOpen | styleClose)*;
 
-span : CHAR+;
+span : (CHAR | AT_PIPE_PIPE | PIPE_PIPE_AT)+;
 styleOpen : STYLE_OPEN styleAttr (CHAR_COMMA styleAttr)* (CHAR_SEMICOLON | CHAR_WS)?;
 styleClose : STYLE_CLOSE;
 

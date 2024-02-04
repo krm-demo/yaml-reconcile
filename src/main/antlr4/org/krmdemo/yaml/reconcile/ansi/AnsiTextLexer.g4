@@ -3,6 +3,9 @@ lexer grammar AnsiTextLexer;
 STYLE_OPEN : '@|' -> pushMode(STYLE_MODE);
 STYLE_CLOSE : '|@';
 
+AT_PIPE_PIPE : '@||' { setText("@|"); };
+PIPE_PIPE_AT : '||@' { setText("|@"); };
+
 CRLF : [\r]? [\n] | [\r];
 CHAR : .;
 
