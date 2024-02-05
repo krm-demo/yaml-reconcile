@@ -53,7 +53,7 @@ public class AnsiEscSeqTest {
         assertThat(ansiText(">>> @|magenta;@||la-la-la||@|@ <<<").content()).isEqualTo(">>> @|la-la-la|@ <<<");
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "[{index}] {1}")
     @CsvSource(delimiterString = " ::: ", value = {
         ">>> reset-all \\u001b[0m <<<" +
             " ::: >>> reset-all  <<<" +
@@ -83,7 +83,7 @@ public class AnsiEscSeqTest {
         assertThat("" + ansiTxt.spanStyles().toList()).isEqualTo(strSpanStyles);
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "[{index}] {1}")
     @CsvSource(delimiterString = " ::: ", value = {
         ">>> \\u001b[31m'red'\\u001b[39m <<<" +
             " ::: >>> 'red' <<<" +
@@ -97,6 +97,14 @@ public class AnsiEscSeqTest {
             " ::: >>> 'on grey' <<<" +
             " ::: >>> \\u001B[47m'on grey'\\u001B[49m <<<" +
             " ::: [ansi-style-empty, ansi-style<bg(white)>, ansi-style<!bg>]",
+        ">>> \\u001b[48;5;251m'on #FB'\\u001b[49m <<<" +
+            " ::: >>> 'on #FB' <<<" +
+            " ::: >>> \\u001B[48;5;251m'on #FB'\\u001B[49m <<<" +
+            " ::: [ansi-style-empty, ansi-style<bg(#FB)>, ansi-style<!bg>]",
+        ">>> \\u001b[91;107m'bright red on light grey'\\u001b[39;49m <<<" +
+            " ::: >>> 'bright red on light grey' <<<" +
+            " ::: >>> \\u001B[91;107m'bright red on light grey'\\u001B[39;49m <<<" +
+            " ::: [ansi-style-empty, ansi-style<fg(^red),bg(^white)>, ansi-style<!fg,!bg>]",
 //        "inputAnsiFmt ::: content ::: escWithLS ::: strSpanStyles",
     })
     void testColorEscSeq(String inputAnsiFmt, String content, String escWithLS, String strSpanStyles) {

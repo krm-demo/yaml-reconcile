@@ -103,6 +103,24 @@ ESC_SEQ_APPLY_BG_MAGENTA : '45' { setText(bg(MAGENTA).name()); };
 ESC_SEQ_APPLY_BG_CYAN :    '46' { setText(bg(CYAN).name()); };
 ESC_SEQ_APPLY_BG_WHITE :   '47' { setText(bg(WHITE).name()); };
 
+ESC_SEQ_APPLY_FG_BRIGHT_BLACK :   '90' { setText(fg(BRIGHT_BLACK).name()); };
+ESC_SEQ_APPLY_FG_BRIGHT_RED :     '91' { setText(fg(BRIGHT_RED).name()); };
+ESC_SEQ_APPLY_FG_BRIGHT_GREEN :   '92' { setText(fg(BRIGHT_GREEN).name()); };
+ESC_SEQ_APPLY_FG_BRIGHT_YELLOW :  '93' { setText(fg(BRIGHT_YELLOW).name()); };
+ESC_SEQ_APPLY_FG_BRIGHT_BLUE :    '94' { setText(fg(BRIGHT_BLUE).name()); };
+ESC_SEQ_APPLY_FG_BRIGHT_MAGENTA : '95' { setText(fg(BRIGHT_MAGENTA).name()); };
+ESC_SEQ_APPLY_FG_BRIGHT_CYAN :    '96' { setText(fg(BRIGHT_CYAN).name()); };
+ESC_SEQ_APPLY_FG_BRIGHT_WHITE :   '97' { setText(fg(BRIGHT_WHITE).name()); };
+
+ESC_SEQ_APPLY_BG_BRIGHT_BLACK :   '100' { setText(bg(BRIGHT_BLACK).name()); };
+ESC_SEQ_APPLY_BG_BRIGHT_RED :     '101' { setText(bg(BRIGHT_RED).name()); };
+ESC_SEQ_APPLY_BG_BRIGHT_GREEN :   '102' { setText(bg(BRIGHT_GREEN).name()); };
+ESC_SEQ_APPLY_BG_BRIGHT_YELLOW :  '103' { setText(bg(BRIGHT_YELLOW).name()); };
+ESC_SEQ_APPLY_BG_BRIGHT_BLUE :    '104' { setText(bg(BRIGHT_BLUE).name()); };
+ESC_SEQ_APPLY_BG_BRIGHT_MAGENTA : '105' { setText(bg(BRIGHT_MAGENTA).name()); };
+ESC_SEQ_APPLY_BG_BRIGHT_CYAN :    '106' { setText(bg(BRIGHT_CYAN).name()); };
+ESC_SEQ_APPLY_BG_BRIGHT_WHITE :   '107' { setText(bg(BRIGHT_WHITE).name()); };
+
 ESC_SEQ_APPLY_BOLD :          '1' { setText(APPLY_BOLD.name()); };
 ESC_SEQ_APPLY_DIM :           '2' { setText(APPLY_DIM.name()); };
 ESC_SEQ_APPLY_ITALIC :        '3' { setText(APPLY_ITALIC.name()); };
@@ -115,8 +133,8 @@ ESC_SEQ_APPLY_STRIKETHROUGH : '9' { setText(APPLY_STRIKETHROUGH.name()); };
 ESC_SEQ_FG_256 : '38;5;' -> pushMode(ESC_SEQ_COLOR);
 ESC_SEQ_BG_256 : '48;5;' -> pushMode(ESC_SEQ_COLOR);
 
-ESC_SEQ_FG_RGB : '38;2;' -> pushMode(ESC_SEQ_COLOR);
-ESC_SEQ_BG_RGB : '48;2;' -> pushMode(ESC_SEQ_COLOR);
+ESC_SEQ_FG_RGB : '38;2;' -> pushMode(ESC_SEQ_COLOR), pushMode(ESC_SEQ_COLOR), pushMode(ESC_SEQ_COLOR);
+ESC_SEQ_BG_RGB : '48;2;' -> pushMode(ESC_SEQ_COLOR), pushMode(ESC_SEQ_COLOR), pushMode(ESC_SEQ_COLOR);
 
 // --------- ESC-Color 256/RGB  mode: -----------
 
