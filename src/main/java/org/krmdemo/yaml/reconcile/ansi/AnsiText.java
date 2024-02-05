@@ -193,6 +193,13 @@ public class AnsiText implements AnsiStyle.Holder {
     }
 
     /**
+     * @return sequence of ansi-styles used in this text
+     */
+    public Stream<AnsiStyle> spanStyles() {
+        return lines.stream().flatMap(Line::spans).map(Span::style).flatMap(Optional::stream);
+    }
+
+    /**
      * @return content of text without any ansi-styles
      */
     public String content() {
@@ -313,12 +320,12 @@ public class AnsiText implements AnsiStyle.Holder {
 
         @Override
         public void enterSpan(AnsiTextParser.SpanContext ctx) {
-            log.trace(format("|---> enterSpan #%d in line #%d", currentLine().spans.size(), lines.size()));
+            log.debug(format("|---> enterSpan #%d in line #%d", currentLine().spans.size(), lines.size()));
         }
 
         @Override
         public void exitSpan(AnsiTextParser.SpanContext ctx) {
-            log.trace(format("|<---  exitSpan - '%s'", ctx.getText()));
+            log.debug(format("|<---  exitSpan - '%s'", ctx.getText()));
             span(ctx.getText());
         }
 
@@ -360,6 +367,7 @@ public class AnsiText implements AnsiStyle.Holder {
 
         @Override
         public void exitFgColorName(AnsiTextParser.FgColorNameContext ctx) {
+            // TODO: check that only color-name is used (prohibit 'bold', 'italic', ...)
             styleBuilder.acceptByName(ctx.getText());
             log.trace(format("|<----  exitFgColorName - '%s', style after: %s", ctx.getText(), styleBuilder.build()));
         }
@@ -416,8 +424,9 @@ public class AnsiText implements AnsiStyle.Holder {
             int startEnd = ctx.getStart() == null ? -1 : ctx.getStart().getStopIndex();
             int stopBegin = ctx.getStop() == null ? -1 : ctx.getStop().getStartIndex();
             int stopEnd = ctx.getStop() == null ? -1 : ctx.getStop().getStopIndex();
-            log.debug(format("|<----  enterEscSeqAttrCode - '%s' (%d;%d)..(%d;%d)",
-                ctx.getText(), startBegin, startEnd, stopBegin, stopEnd));
+            styleBuilder.acceptByName(ctx.getText());
+            log.debug(format("|<----  enterEscSeqAttrCode - '%s' (%d;%d)..(%d;%d), style after: %s",
+                ctx.getText(), startBegin, startEnd, stopBegin, stopEnd, styleBuilder.build()));
         }
 
         @Override
@@ -427,9 +436,11 @@ public class AnsiText implements AnsiStyle.Holder {
             int startEnd = ctx.getStart() == null ? -1 : ctx.getStart().getStopIndex();
             int stopBegin = ctx.getStop() == null ? -1 : ctx.getStop().getStartIndex();
             int stopEnd = ctx.getStop() == null ? -1 : ctx.getStop().getStopIndex();
-            log.debug(format("|<----  exitFgEscColor256(%d) : fg(%d) (%d;%d)..(%d;%d)",
+            styleBuilder.accept(AnsiStyleAttr.fg(color256));
+            log.debug(format("|<----  exitFgEscColor256(%d) : fg(%d) (%d;%d)..(%d;%d), style after: %s",
                 ctx.children.size(), color256,
-                startBegin, startEnd, stopBegin, stopEnd));
+                startBegin, startEnd, stopBegin, stopEnd,
+                styleBuilder.build()));
         }
 
         @Override
@@ -439,9 +450,16 @@ public class AnsiText implements AnsiStyle.Holder {
             int startEnd = ctx.getStart() == null ? -1 : ctx.getStart().getStopIndex();
             int stopBegin = ctx.getStop() == null ? -1 : ctx.getStop().getStartIndex();
             int stopEnd = ctx.getStop() == null ? -1 : ctx.getStop().getStopIndex();
-            log.debug(format("|<----  exitBgEscColor256(%d) : bg(%d) (%d;%d)..(%d;%d)",
+            styleBuilder.accept(AnsiStyleAttr.bg(color256));
+            log.debug(format("|<----  exitBgEscColor256(%d) : bg(%d) (%d;%d)..(%d;%d), style after: %s",
                 ctx.children.size(), color256,
-                startBegin, startEnd, stopBegin, stopEnd));
+                startBegin, startEnd, stopBegin, stopEnd,
+                styleBuilder.build()));
+        }
+
+        @Override
+        public void enterEscSeq(AnsiTextParser.EscSeqContext ctx) {
+            log.debug(format("|---> enterEscSeq - in stack (%d) %s", styleStack.size(), styleBuilder.build()));
         }
 
         @Override
@@ -454,7 +472,7 @@ public class AnsiText implements AnsiStyle.Holder {
                 ctx.children.size(),
                 escapeJava(ctx.getText()),
                 startBegin, startEnd, stopBegin, stopEnd));
-            span(format("ESC(%s)", escapeJava(ctx.getText())));
+            //span(format("ESC(%s)", escapeJava(ctx.getText())));
         }
 
         @Override

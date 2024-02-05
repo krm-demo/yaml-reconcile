@@ -73,6 +73,17 @@ ESC_SEQ_SEP : ';';
 
 ESC_SEQ_RESET_ALL : '0' { setText(RESET_ALL.name()); };
 
+ESC_SEQ_RESET_BOLD_DIM :      '22' { setText(RESET_BOLD.name()); };
+ESC_SEQ_RESET_ITALIC :        '23' { setText(APPLY_ITALIC.name()); };
+ESC_SEQ_RESET_UNDERLINE :     '24' { setText(APPLY_UNDERLINE.name()); };
+ESC_SEQ_RESET_BLINKING :      '25' { setText(APPLY_BLINKING.name()); };
+ESC_SEQ_RESET_INVERSE :       '27' { setText(APPLY_INVERSE.name()); };
+ESC_SEQ_RESET_HIDDEN :        '28' { setText(APPLY_HIDDEN.name()); };
+ESC_SEQ_RESET_STRIKETHROUGH : '29' { setText(RESET_STRIKETHROUGH.name()); };
+
+ESC_SEQ_RESET_FG_COLOR : '39' { setText(RESET_STRIKETHROUGH.name()); };
+ESC_SEQ_RESET_BG_COLOR : '49' { setText(RESET_STRIKETHROUGH.name()); };
+
 ESC_SEQ_APPLY_BOLD :          '1' { setText(APPLY_BOLD.name()); };
 ESC_SEQ_APPLY_DIM :           '2' { setText(APPLY_DIM.name()); };
 ESC_SEQ_APPLY_ITALIC :        '3' { setText(APPLY_ITALIC.name()); };
@@ -81,14 +92,6 @@ ESC_SEQ_APPLY_BLINKING :      '5' { setText(APPLY_BLINKING.name()); };
 ESC_SEQ_APPLY_INVERSE :       '7' { setText(APPLY_INVERSE.name()); };
 ESC_SEQ_APPLY_HIDDEN :        '8' { setText(APPLY_HIDDEN.name()); };
 ESC_SEQ_APPLY_STRIKETHROUGH : '9' { setText(APPLY_STRIKETHROUGH.name()); };
-
-ESC_SEQ_RESET_BOLD_DIM :      '22' { setText(RESET_BOLD.name()); };
-ESC_SEQ_RESET_ITALIC :        '23' { setText(APPLY_ITALIC.name()); };
-ESC_SEQ_RESET_UNDERLINE :     '24' { setText(APPLY_UNDERLINE.name()); };
-ESC_SEQ_RESET_BLINKING :      '25' { setText(APPLY_BLINKING.name()); };
-ESC_SEQ_RESET_INVERSE :       '27' { setText(APPLY_INVERSE.name()); };
-ESC_SEQ_RESET_HIDDEN :        '28' { setText(APPLY_HIDDEN.name()); };
-ESC_SEQ_RESET_STRIKETHROUGH : '29' { setText(RESET_STRIKETHROUGH.name()); };
 
 ESC_SEQ_FG_256 : '38;5;';
 ESC_SEQ_BG_256 : '48;5;';

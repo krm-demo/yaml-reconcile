@@ -178,12 +178,11 @@ public class AnsiStyleAttr implements Comparable<AnsiStyleAttr> {
         return valueOf(ansiCode());
     }
 
-    public static AnsiStyleAttr RESET_ALL =
-        new AnsiStyleAttr(Operation.reset, Family.ALL, 0);
-
     private static AnsiStyleAttr resetAttr(Family family, int ansiCode) {
         return createAndRegister(Operation.reset, family, ansiCode);
     }
+
+    public static AnsiStyleAttr RESET_ALL =resetAttr(ALL, 0);
 
     public static AnsiStyleAttr RESET_BOLD = resetAttr(BOLD, 22);
     public static AnsiStyleAttr RESET_DIM = resetAttr(DIM, 22);

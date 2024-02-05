@@ -16,6 +16,9 @@ import static org.apache.commons.text.StringEscapeUtils.escapeJava;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiRenderCtx.renderCtx;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.RESET_ALL;
+import static org.krmdemo.yaml.reconcile.test.ansi.AnsiTestUtils.escSeqByPos;
+import static org.krmdemo.yaml.reconcile.test.ansi.AnsiTestUtils.escapeJavaWithLS;
+import static org.krmdemo.yaml.reconcile.test.ansi.AnsiTestUtils.kv;
 import static org.krmdemo.yaml.reconcile.util.StreamUtils.toSortedMap;
 
 public class AnsiTextTest {
@@ -23,6 +26,7 @@ public class AnsiTextTest {
     @ParameterizedTest(name = "(siblingStylesSquash = {0})")
     @ValueSource(booleans = {true, false})
     void testSimpleStyles(boolean siblingStylesSquash) {
+        renderCtx().setSiblingStylesSquash(siblingStylesSquash);
         String textAnsiFmt = """
               the first line with two leading spaces
             this is '@|red the red fragment|@' without leading space or semicolon;
@@ -59,6 +63,7 @@ public class AnsiTextTest {
 
     @Test
     void testNestedStyles() {
+        renderCtx().setSiblingStylesSquash(true);
         String textAnsiFmt = """
             @|bold;the first line with leading bold fragment|@ and trailing no-style
               the next style starts @|green here and
@@ -163,19 +168,6 @@ public class AnsiTextTest {
             //System.out.println(ansiText.dump());
             // TODO: make assertions
         });
-    }
-
-    private static String escapeJavaWithLS(AnsiText text) {
-        return escapeJava(text.renderAnsi()).replaceAll("\\\\n", lineSeparator());
-    }
-
-    private static Map<Integer, String> escSeqByPos(String str) {
-        Matcher m = Pattern.compile("\u001B\\[(.*?)m").matcher(str);
-        return m.results().collect(toSortedMap(mr -> mr.start(1), mr -> mr.group(1)));
-    }
-
-    private static <K,V> Map.Entry<K,V> kv(K key, V value) {
-        return new AbstractMap.SimpleEntry<>(key, value);
     }
 
 //    public static void main(String[] args) {
