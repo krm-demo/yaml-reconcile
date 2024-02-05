@@ -15,8 +15,12 @@ build/
 # JetBrains IDE
 .idea/
 out/
-gen/
 *.iml
+
+# ANTLR / JetBrains Plugin
+gen/
+*.tokens
+*.interp
 
 # Unit test reports
 TEST*.xml

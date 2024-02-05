@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiText.ansiText;
 
-public class AnsiTextErrorTest {
+public class AnsiTextEscTest {
 
     @DisplayName("output '@|' and '|@'")
     @Test void testAtSymbolWithDoublePipe() {
@@ -35,5 +35,9 @@ public class AnsiTextErrorTest {
         assertThat(ansiText(">>> @|red;@||la-la-la|@ <<<").content()).isEqualTo(">>> @|la-la-la <<<");
         assertThat(ansiText(">>> @|blue;la-la-la||@|@ <<<").content()).isEqualTo(">>> la-la-la|@ <<<");
         assertThat(ansiText(">>> @|magenta;@||la-la-la||@|@ <<<").content()).isEqualTo(">>> @|la-la-la|@ <<<");
+    }
+
+    @Test void testSingleEscSeq() {
+        System.out.println(ansiText(">>> \u001b[0;2;3;4;99;38;5;123;0m <<<").renderAnsi());
     }
 }

@@ -17,6 +17,7 @@ import static java.lang.System.lineSeparator;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
+import static org.apache.commons.text.StringEscapeUtils.escapeJava;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiRenderCtx.renderCtx;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.empty;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.emptyBuilder;
@@ -407,6 +408,53 @@ public class AnsiText implements AnsiStyle.Holder {
             styleBuilder.accept(AnsiStyleAttr.bg(red, green, blue));
             log.trace(format("|<----  exitBgColorRGB - '%s', style after: %s #%X rgb(%d, %d, %d)",
                 ctx.getText(), styleBuilder.build(), colorRGB, red, green, blue));
+        }
+
+        @Override
+        public void enterEscSeqAttrCode(AnsiTextParser.EscSeqAttrCodeContext ctx) {
+            int startBegin = ctx.getStart() == null ? -1 : ctx.getStart().getStartIndex();
+            int startEnd = ctx.getStart() == null ? -1 : ctx.getStart().getStopIndex();
+            int stopBegin = ctx.getStop() == null ? -1 : ctx.getStop().getStartIndex();
+            int stopEnd = ctx.getStop() == null ? -1 : ctx.getStop().getStopIndex();
+            log.debug(format("|<----  enterEscSeqAttrCode - '%s' (%d;%d)..(%d;%d)",
+                ctx.getText(), startBegin, startEnd, stopBegin, stopEnd));
+        }
+
+        @Override
+        public void exitFgEscColor256(AnsiTextParser.FgEscColor256Context ctx) {
+            int color256 = ctx.getChildCount() < 2 ? -1 : Integer.parseInt(ctx.getChild(1).getText());
+            int startBegin = ctx.getStart() == null ? -1 : ctx.getStart().getStartIndex();
+            int startEnd = ctx.getStart() == null ? -1 : ctx.getStart().getStopIndex();
+            int stopBegin = ctx.getStop() == null ? -1 : ctx.getStop().getStartIndex();
+            int stopEnd = ctx.getStop() == null ? -1 : ctx.getStop().getStopIndex();
+            log.debug(format("|<----  exitFgEscColor256(%d) : fg(%d) (%d;%d)..(%d;%d)",
+                ctx.children.size(), color256,
+                startBegin, startEnd, stopBegin, stopEnd));
+        }
+
+        @Override
+        public void exitBgEscColor256(AnsiTextParser.BgEscColor256Context ctx) {
+            int color256 = ctx.getChildCount() < 2 ? -1 : Integer.parseInt(ctx.getChild(1).getText());
+            int startBegin = ctx.getStart() == null ? -1 : ctx.getStart().getStartIndex();
+            int startEnd = ctx.getStart() == null ? -1 : ctx.getStart().getStopIndex();
+            int stopBegin = ctx.getStop() == null ? -1 : ctx.getStop().getStartIndex();
+            int stopEnd = ctx.getStop() == null ? -1 : ctx.getStop().getStopIndex();
+            log.debug(format("|<----  exitBgEscColor256(%d) : bg(%d) (%d;%d)..(%d;%d)",
+                ctx.children.size(), color256,
+                startBegin, startEnd, stopBegin, stopEnd));
+        }
+
+        @Override
+        public void exitEscSeq(AnsiTextParser.EscSeqContext ctx) {
+            int startBegin = ctx.getStart() == null ? -1 : ctx.getStart().getStartIndex();
+            int startEnd = ctx.getStart() == null ? -1 : ctx.getStart().getStopIndex();
+            int stopBegin = ctx.getStop() == null ? -1 : ctx.getStop().getStartIndex();
+            int stopEnd = ctx.getStop() == null ? -1 : ctx.getStop().getStopIndex();
+            log.debug(format("|<---  exitEscSeq(%d) - '%s' (%d;%d)..(%d;%d)",
+                ctx.children.size(),
+                escapeJava(ctx.getText()),
+                startBegin, startEnd, stopBegin, stopEnd));
+            span(format("ESC(%s)", escapeJava(ctx.getText())));
         }
 
         @Override
