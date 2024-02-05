@@ -63,12 +63,5 @@ escSeqAttrCode : ESC_SEQ_RESET_ALL | ESC_SEQ_RESET_FG_COLOR | ESC_SEQ_RESET_BG_C
 fgEscColor256 : ESC_SEQ_FG_256 ESC_SEQ_INTEGER;
 bgEscColor256 : ESC_SEQ_BG_256 ESC_SEQ_INTEGER;
 
-fgEscColorRGB : ESC_SEQ_FG_RGB
-                red=ESC_SEQ_INTEGER   ESC_SEQ_SEP
-                green=ESC_SEQ_INTEGER ESC_SEQ_SEP
-                blue=ESC_SEQ_INTEGER;
-
-bgEscColorRGB : ESC_SEQ_BG_RGB
-                red=ESC_SEQ_INTEGER   ESC_SEQ_SEP
-                green=ESC_SEQ_INTEGER ESC_SEQ_SEP
-                blue=ESC_SEQ_INTEGER;
+fgEscColorRGB : ESC_SEQ_FG_RGB ESC_SEQ_RGB;
+bgEscColorRGB : ESC_SEQ_BG_RGB ESC_SEQ_RGB;

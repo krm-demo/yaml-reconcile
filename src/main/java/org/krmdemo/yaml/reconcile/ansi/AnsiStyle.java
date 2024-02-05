@@ -190,6 +190,9 @@ public class AnsiStyle {
         }
 
         public Builder accept(AnsiStyleAttr styleAttr) {
+            if (styleAttr.equals(RESET_ALL)) {
+                attrsMap.clear();
+            }
             attrsMap.put(styleAttr.family(), styleAttr);
             return this;
         }

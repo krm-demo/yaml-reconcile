@@ -20,7 +20,7 @@ lexer grammar AnsiTextLexer;
     // ----------------------------------------------
     private final static Logger log = org.slf4j.LoggerFactory.getLogger(AnsiTextLexer.class);
     static {
-        if (log.isDebugEnabled()) {
+        if (log.isTraceEnabled()) {
             log.debug("in static initializing:");
             Stream.of(
                 RESET_ALL, RESET_FG, RESET_BG,
@@ -130,13 +130,18 @@ ESC_SEQ_APPLY_INVERSE :       '7' { setText(APPLY_INVERSE.name()); };
 ESC_SEQ_APPLY_HIDDEN :        '8' { setText(APPLY_HIDDEN.name()); };
 ESC_SEQ_APPLY_STRIKETHROUGH : '9' { setText(APPLY_STRIKETHROUGH.name()); };
 
-ESC_SEQ_FG_256 : '38;5;' -> pushMode(ESC_SEQ_COLOR);
-ESC_SEQ_BG_256 : '48;5;' -> pushMode(ESC_SEQ_COLOR);
+ESC_SEQ_FG_256 : '38;5;' -> pushMode(ESC_SEQ_COLOR_256_MODE);
+ESC_SEQ_BG_256 : '48;5;' -> pushMode(ESC_SEQ_COLOR_256_MODE);
 
-ESC_SEQ_FG_RGB : '38;2;' -> pushMode(ESC_SEQ_COLOR), pushMode(ESC_SEQ_COLOR), pushMode(ESC_SEQ_COLOR);
-ESC_SEQ_BG_RGB : '48;2;' -> pushMode(ESC_SEQ_COLOR), pushMode(ESC_SEQ_COLOR), pushMode(ESC_SEQ_COLOR);
+ESC_SEQ_FG_RGB : '38;2;' -> pushMode(ESC_SEQ_COLOR_RGB_MODE);
+ESC_SEQ_BG_RGB : '48;2;' -> pushMode(ESC_SEQ_COLOR_RGB_MODE);
 
-// --------- ESC-Color 256/RGB  mode: -----------
+// --------- ESC-Color-256 mode: -----------
 
-mode ESC_SEQ_COLOR;
+mode ESC_SEQ_COLOR_256_MODE;
 ESC_SEQ_INTEGER : [0-9]+ -> popMode;
+
+// --------- ESC-Color-256 mode: -----------
+
+mode ESC_SEQ_COLOR_RGB_MODE;
+ESC_SEQ_RGB : [0-9]+ ';' [0-9]+ ';' [0-9]+ -> popMode;

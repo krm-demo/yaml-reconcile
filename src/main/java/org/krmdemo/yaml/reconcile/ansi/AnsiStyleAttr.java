@@ -1,6 +1,5 @@
 package org.krmdemo.yaml.reconcile.ansi;
 
-
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
@@ -188,7 +187,7 @@ public class AnsiStyleAttr implements Comparable<AnsiStyleAttr> {
     public static AnsiStyleAttr RESET_DIM = resetAttr(DIM, 22);
     public static AnsiStyleAttr RESET_ITALIC = resetAttr(ITALIC, 23);
     public static AnsiStyleAttr RESET_UNDERLINE = resetAttr(UNDERLINE, 24);
-    public static AnsiStyleAttr RESET_BLINKING = resetAttr(BLINKING, 24);
+    public static AnsiStyleAttr RESET_BLINKING = resetAttr(BLINKING, 25);
     public static AnsiStyleAttr RESET_INVERSE = resetAttr(INVERSE, 27);
     public static AnsiStyleAttr RESET_HIDDEN = resetAttr(HIDDEN, 28);
     public static AnsiStyleAttr RESET_STRIKETHROUGH = resetAttr(STRIKETHROUGH, 29);

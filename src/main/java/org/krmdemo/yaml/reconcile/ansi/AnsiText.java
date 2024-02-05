@@ -3,15 +3,18 @@ package org.krmdemo.yaml.reconcile.ansi;
 import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.*;
+import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static java.lang.Integer.parseInt;
 import static java.lang.String.format;
 import static java.lang.System.lineSeparator;
 import static java.util.Collections.unmodifiableList;
@@ -320,12 +323,12 @@ public class AnsiText implements AnsiStyle.Holder {
 
         @Override
         public void enterSpan(AnsiTextParser.SpanContext ctx) {
-            log.debug(format("|---> enterSpan #%d in line #%d", currentLine().spans.size(), lines.size()));
+            log.trace(format("|---> enterSpan #%d in line #%d", currentLine().spans.size(), lines.size()));
         }
 
         @Override
         public void exitSpan(AnsiTextParser.SpanContext ctx) {
-            log.debug(format("|<---  exitSpan - '%s'", ctx.getText()));
+            log.trace(format("|<---  exitSpan - '%s'", ctx.getText()));
             span(ctx.getText());
         }
 
@@ -419,25 +422,25 @@ public class AnsiText implements AnsiStyle.Holder {
         }
 
         @Override
-        public void enterEscSeqAttrCode(AnsiTextParser.EscSeqAttrCodeContext ctx) {
+        public void exitEscSeqAttrCode(AnsiTextParser.EscSeqAttrCodeContext ctx) {
             int startBegin = ctx.getStart() == null ? -1 : ctx.getStart().getStartIndex();
             int startEnd = ctx.getStart() == null ? -1 : ctx.getStart().getStopIndex();
             int stopBegin = ctx.getStop() == null ? -1 : ctx.getStop().getStartIndex();
             int stopEnd = ctx.getStop() == null ? -1 : ctx.getStop().getStopIndex();
             styleBuilder.acceptByName(ctx.getText());
-            log.debug(format("|<----  enterEscSeqAttrCode - '%s' (%d;%d)..(%d;%d), style after: %s",
+            log.trace(format("|<----  exitEscSeqAttrCode - '%s' (%d;%d)..(%d;%d), style after: %s",
                 ctx.getText(), startBegin, startEnd, stopBegin, stopEnd, styleBuilder.build()));
         }
 
         @Override
         public void exitFgEscColor256(AnsiTextParser.FgEscColor256Context ctx) {
-            int color256 = ctx.getChildCount() < 2 ? -1 : Integer.parseInt(ctx.getChild(1).getText());
+            int color256 = ctx.getChildCount() < 2 ? -1 : parseInt(ctx.getChild(1).getText());
             int startBegin = ctx.getStart() == null ? -1 : ctx.getStart().getStartIndex();
             int startEnd = ctx.getStart() == null ? -1 : ctx.getStart().getStopIndex();
             int stopBegin = ctx.getStop() == null ? -1 : ctx.getStop().getStartIndex();
             int stopEnd = ctx.getStop() == null ? -1 : ctx.getStop().getStopIndex();
             styleBuilder.accept(AnsiStyleAttr.fg(color256));
-            log.debug(format("|<----  exitFgEscColor256(%d) : fg(%d) (%d;%d)..(%d;%d), style after: %s",
+            log.trace(format("|<----  exitFgEscColor256(%d) : fg(%d) (%d;%d)..(%d;%d), style after: %s",
                 ctx.children.size(), color256,
                 startBegin, startEnd, stopBegin, stopEnd,
                 styleBuilder.build()));
@@ -445,21 +448,55 @@ public class AnsiText implements AnsiStyle.Holder {
 
         @Override
         public void exitBgEscColor256(AnsiTextParser.BgEscColor256Context ctx) {
-            int color256 = ctx.getChildCount() < 2 ? -1 : Integer.parseInt(ctx.getChild(1).getText());
+            int color256 = ctx.getChildCount() < 2 ? -1 : parseInt(ctx.getChild(1).getText());
             int startBegin = ctx.getStart() == null ? -1 : ctx.getStart().getStartIndex();
             int startEnd = ctx.getStart() == null ? -1 : ctx.getStart().getStopIndex();
             int stopBegin = ctx.getStop() == null ? -1 : ctx.getStop().getStartIndex();
             int stopEnd = ctx.getStop() == null ? -1 : ctx.getStop().getStopIndex();
             styleBuilder.accept(AnsiStyleAttr.bg(color256));
-            log.debug(format("|<----  exitBgEscColor256(%d) : bg(%d) (%d;%d)..(%d;%d), style after: %s",
+            log.trace(format("|<----  exitBgEscColor256(%d) : bg(%d) (%d;%d)..(%d;%d), style after: %s",
                 ctx.children.size(), color256,
                 startBegin, startEnd, stopBegin, stopEnd,
                 styleBuilder.build()));
         }
 
         @Override
+        public void exitFgEscColorRGB(AnsiTextParser.FgEscColorRGBContext ctx) {
+            MatchResult mrRGB = matchRGB(ctx, "could not convert the ';'-separated foreground RGB-color '%s'");
+            int red =   parseInt(mrRGB.group(1));
+            int green = parseInt(mrRGB.group(2));
+            int blue =  parseInt(mrRGB.group(3));
+            int startBegin = ctx.getStart() == null ? -1 : ctx.getStart().getStartIndex();
+            int startEnd = ctx.getStart() == null ? -1 : ctx.getStart().getStopIndex();
+            int stopBegin = ctx.getStop() == null ? -1 : ctx.getStop().getStartIndex();
+            int stopEnd = ctx.getStop() == null ? -1 : ctx.getStop().getStopIndex();
+            styleBuilder.accept(AnsiStyleAttr.fg(red, green, blue));
+            log.trace(format("|<----  exitFgEscColorRGB(%d) : fg(%d, %d, %d) (%d;%d)..(%d;%d), style after: %s",
+                ctx.children.size(), red, green, blue,
+                startBegin, startEnd, stopBegin, stopEnd,
+                styleBuilder.build()));
+        }
+
+        @Override
+        public void exitBgEscColorRGB(AnsiTextParser.BgEscColorRGBContext ctx) {
+            MatchResult mrRGB = matchRGB(ctx, "could not convert the ';'-separated background RGB-color '%s'");
+            int red =   parseInt(mrRGB.group(1));
+            int green = parseInt(mrRGB.group(2));
+            int blue =  parseInt(mrRGB.group(3));
+            int startBegin = ctx.getStart() == null ? -1 : ctx.getStart().getStartIndex();
+            int startEnd = ctx.getStart() == null ? -1 : ctx.getStart().getStopIndex();
+            int stopBegin = ctx.getStop() == null ? -1 : ctx.getStop().getStartIndex();
+            int stopEnd = ctx.getStop() == null ? -1 : ctx.getStop().getStopIndex();
+            styleBuilder.accept(AnsiStyleAttr.bg(red, green, blue));
+            log.trace(format("|<----  exitBgEscColorRGB(%d) : fg(%d, %d, %d) (%d;%d)..(%d;%d), style after: %s",
+                ctx.children.size(), red, green, blue,
+                startBegin, startEnd, stopBegin, stopEnd,
+                styleBuilder.build()));
+        }
+
+        @Override
         public void enterEscSeq(AnsiTextParser.EscSeqContext ctx) {
-            log.debug(format("|---> enterEscSeq - in stack (%d) %s", styleStack.size(), styleBuilder.build()));
+            log.trace(format("|---> enterEscSeq - in stack (%d) %s", styleStack.size(), styleBuilder.build()));
         }
 
         @Override
@@ -468,7 +505,7 @@ public class AnsiText implements AnsiStyle.Holder {
             int startEnd = ctx.getStart() == null ? -1 : ctx.getStart().getStopIndex();
             int stopBegin = ctx.getStop() == null ? -1 : ctx.getStop().getStartIndex();
             int stopEnd = ctx.getStop() == null ? -1 : ctx.getStop().getStopIndex();
-            log.debug(format("|<---  exitEscSeq(%d) - '%s' (%d;%d)..(%d;%d)",
+            log.trace(format("|<---  exitEscSeq(%d) - '%s' (%d;%d)..(%d;%d)",
                 ctx.children.size(),
                 escapeJava(ctx.getText()),
                 startBegin, startEnd, stopBegin, stopEnd));
@@ -496,46 +533,20 @@ public class AnsiText implements AnsiStyle.Holder {
                 throw new IllegalArgumentException(format(fmtErrMsg, strColor));
             }
         }
-   }
 
-//    private static String escapeAll(String str) {
-//        return str.chars().boxed().map(c -> format("\\u%04x", c)).collect(joining());
-//    }
-//
-//    private static String dumpParseTree(ParseTree parseTree) {
-//        String nodeText = Utils.escapeWhitespace(getNodeText(parseTree, (List<String>)null), true);
-//        StringBuilder sb = new StringBuilder(format("<< %s >> ", nodeText));
-//        sb.append(format("(%s) ", parseTree.getClass().getSimpleName()));
-//        sb.append(lineSeparator());
-//        for (int i = 0; i < parseTree.getChildCount(); i++) {
-//            sb.append("+-- ");
-//            String childText = dumpParseTree(parseTree.getChild(i));
-//            sb.append(childText.replaceAll("\n", "\n    "));
-//        }
-//        return sb.toString();
-//    }
-//
-//    private static String dumpTerminalNode(TerminalNode node) {
-//        if (node.getSymbol() == null) {
-//            return format("<< unknown symbol for terminal node <%s>%s",
-//                escapeJava(node.getText()), escapeAll(node.getText()));
-//        } else {
-//            return dumpToken(node.getSymbol());
-//        }
-//    }
-//
-//    private static String dumpToken(Token token) {
-//        if (token == null) {
-//            return "<< unknown token >>";
-//        }
-//        String nodeText = token.getText();
-//        int nodeType = token.getType();
-//        String nodeTypeName = nodeType > 0 ? AnsiTextLexer.ruleNames[nodeType - 1] : "nodeType#" + nodeType;
-//        return format("%s<%s>%s(%d..%d) in line %d at position %d",
-//            nodeTypeName + "--" + token.getTokenIndex(), escapeJava(nodeText), escapeAll(nodeText),
-//            token.getStartIndex(),
-//            token.getStopIndex(),
-//            token.getLine(),
-//            token.getCharPositionInLine());
-//    }
+        private final static Pattern patternEscRGB = Pattern.compile("(\\d+);(\\d+);(\\d+)");
+
+        private static MatchResult matchRGB(ParserRuleContext ctxRGB, String fmtErrMsg) {
+            if (ctxRGB.getChildCount() < 1) {
+                throw new IllegalArgumentException(format(fmtErrMsg + " - missing token", ctxRGB.getText()));
+            }
+            String strRGB = ctxRGB.getChild(1).getText();
+            Matcher matcher = patternEscRGB.matcher(strRGB);
+            if (matcher.find()) {
+                return matcher.toMatchResult();
+            } else {
+                throw new IllegalArgumentException(format(fmtErrMsg + " - no match to " + patternEscRGB.pattern(), strRGB));
+            }
+        }
+   }
 }

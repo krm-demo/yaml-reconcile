@@ -1,6 +1,5 @@
 package org.krmdemo.yaml.reconcile.test.ansi;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -8,7 +7,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.krmdemo.yaml.reconcile.ansi.AnsiText;
 
-import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiRenderCtx.renderCtx;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiText.ansiText;
@@ -19,7 +17,7 @@ public class AnsiEscSeqTest {
 
     @BeforeEach
     void before() {
-        renderCtx().setSiblingStylesSquash(false);
+        renderCtx().setSiblingStylesSquash(true);
         renderCtx().setLinePrefixResetAll(false);
         renderCtx().setLineSuffixResetAll(false);
     }
@@ -61,12 +59,12 @@ public class AnsiEscSeqTest {
             " ::: [ansi-style-empty, ansi-style<!!>]",
         ">>> apply-single \\u001b[2;5;3;4;1m <<<" +
             " ::: >>> apply-single  <<<" +
-            " ::: >>> apply-single \\u001B[1;2;3;4;5m <<<\\u001B[22;22;23;24;24m" +
+            " ::: >>> apply-single \\u001B[1;2;3;4;5m <<<\\u001B[22;22;23;24;25m" +
             " ::: [ansi-style-empty, ansi-style<bold,dim,italic,underline,blinking>]",
-        ">>> apply-and-reset \\u001b[25;23;4;1;0;9m <<<" +
+        ">>> apply-and-reset \\u001b[25;23;4;1;9m <<<" +
             " ::: >>> apply-and-reset  <<<" +
-            " ::: >>> apply-and-reset \\u001B[1;3;4;5;9m <<<\\u001B[22;23;24;24;29m" +
-            " ::: [ansi-style-empty, ansi-style<bold,italic,underline,blinking,strikethrough,!!>]",
+            " ::: >>> apply-and-reset \\u001B[1;3;4;5;9m <<<\\u001B[22;23;24;25;29m" +
+            " ::: [ansi-style-empty, ansi-style<bold,italic,underline,blinking,strikethrough>]",
 //        "inputAnsiFmt ::: content ::: escWithLS ::: strSpanStyles",
     })
     void testSingleEscSeq(String inputAnsiFmt, String content, String escWithLS, String strSpanStyles) {
@@ -105,6 +103,10 @@ public class AnsiEscSeqTest {
             " ::: >>> 'bright red on light grey' <<<" +
             " ::: >>> \\u001B[91;107m'bright red on light grey'\\u001B[39;49m <<<" +
             " ::: [ansi-style-empty, ansi-style<fg(^red),bg(^white)>, ansi-style<!fg,!bg>]",
+        ">>> \\u001b[38;2;220;120;20;1;48;2;170;210;240m'#DC7814 on #AAD2F0'\\u001b[0m <<<" +
+            " ::: >>> '#DC7814 on #AAD2F0' <<<" +
+            " ::: >>> \\u001B[1;38;2;220;120;20;48;2;170;210;240m'#DC7814 on #AAD2F0'\\u001B[22;39;49m <<<" +
+            " ::: [ansi-style-empty, ansi-style<bold,fg(#DC7814),bg(#AAD2F0)>, ansi-style<!!>]",
 //        "inputAnsiFmt ::: content ::: escWithLS ::: strSpanStyles",
     })
     void testColorEscSeq(String inputAnsiFmt, String content, String escWithLS, String strSpanStyles) {
