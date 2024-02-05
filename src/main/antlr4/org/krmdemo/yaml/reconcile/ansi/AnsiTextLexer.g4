@@ -10,6 +10,7 @@ lexer grammar AnsiTextLexer;
 
     import static java.util.Arrays.stream;
     import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.*;
+    import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.Color.*;
     // ----------------------------------------------
 }
 
@@ -22,7 +23,7 @@ lexer grammar AnsiTextLexer;
         if (log.isDebugEnabled()) {
             log.debug("in static initializing:");
             Stream.of(
-                RESET_ALL,
+                RESET_ALL, RESET_FG, RESET_BG,
                 RESET_BOLD, RESET_DIM, RESET_ITALIC, RESET_UNDERLINE,
                 RESET_BLINKING, RESET_INVERSE, RESET_HIDDEN, RESET_STRIKETHROUGH,
                 APPLY_BOLD, APPLY_DIM, APPLY_ITALIC, APPLY_UNDERLINE,
@@ -81,8 +82,26 @@ ESC_SEQ_RESET_INVERSE :       '27' { setText(APPLY_INVERSE.name()); };
 ESC_SEQ_RESET_HIDDEN :        '28' { setText(APPLY_HIDDEN.name()); };
 ESC_SEQ_RESET_STRIKETHROUGH : '29' { setText(RESET_STRIKETHROUGH.name()); };
 
-ESC_SEQ_RESET_FG_COLOR : '39' { setText(RESET_STRIKETHROUGH.name()); };
-ESC_SEQ_RESET_BG_COLOR : '49' { setText(RESET_STRIKETHROUGH.name()); };
+ESC_SEQ_RESET_FG_COLOR : '39' { setText(RESET_FG.name()); };
+ESC_SEQ_RESET_BG_COLOR : '49' { setText(RESET_BG.name()); };
+
+ESC_SEQ_APPLY_FG_BLACK :   '30' { setText(fg(BLACK).name()); };
+ESC_SEQ_APPLY_FG_RED :     '31' { setText(fg(RED).name()); };
+ESC_SEQ_APPLY_FG_GREEN :   '32' { setText(fg(GREEN).name()); };
+ESC_SEQ_APPLY_FG_YELLOW :  '33' { setText(fg(YELLOW).name()); };
+ESC_SEQ_APPLY_FG_BLUE :    '34' { setText(fg(BLUE).name()); };
+ESC_SEQ_APPLY_FG_MAGENTA : '35' { setText(fg(MAGENTA).name()); };
+ESC_SEQ_APPLY_FG_CYAN :    '36' { setText(fg(CYAN).name()); };
+ESC_SEQ_APPLY_FG_WHITE :   '37' { setText(fg(WHITE).name()); };
+
+ESC_SEQ_APPLY_BG_BLACK :   '40' { setText(bg(BLACK).name()); };
+ESC_SEQ_APPLY_BG_RED :     '41' { setText(bg(RED).name()); };
+ESC_SEQ_APPLY_BG_GREEN :   '42' { setText(bg(GREEN).name()); };
+ESC_SEQ_APPLY_BG_YELLOW :  '43' { setText(bg(YELLOW).name()); };
+ESC_SEQ_APPLY_BG_BLUE :    '44' { setText(bg(BLUE).name()); };
+ESC_SEQ_APPLY_BG_MAGENTA : '45' { setText(bg(MAGENTA).name()); };
+ESC_SEQ_APPLY_BG_CYAN :    '46' { setText(bg(CYAN).name()); };
+ESC_SEQ_APPLY_BG_WHITE :   '47' { setText(bg(WHITE).name()); };
 
 ESC_SEQ_APPLY_BOLD :          '1' { setText(APPLY_BOLD.name()); };
 ESC_SEQ_APPLY_DIM :           '2' { setText(APPLY_DIM.name()); };
@@ -93,10 +112,13 @@ ESC_SEQ_APPLY_INVERSE :       '7' { setText(APPLY_INVERSE.name()); };
 ESC_SEQ_APPLY_HIDDEN :        '8' { setText(APPLY_HIDDEN.name()); };
 ESC_SEQ_APPLY_STRIKETHROUGH : '9' { setText(APPLY_STRIKETHROUGH.name()); };
 
-ESC_SEQ_FG_256 : '38;5;';
-ESC_SEQ_BG_256 : '48;5;';
+ESC_SEQ_FG_256 : '38;5;' -> pushMode(ESC_SEQ_COLOR);
+ESC_SEQ_BG_256 : '48;5;' -> pushMode(ESC_SEQ_COLOR);
 
-ESC_SEQ_FG_RGB : '38;2;';
-ESC_SEQ_BG_RGB : '48;2;';
+ESC_SEQ_FG_RGB : '38;2;' -> pushMode(ESC_SEQ_COLOR);
+ESC_SEQ_BG_RGB : '48;2;' -> pushMode(ESC_SEQ_COLOR);
 
-ESC_SEQ_INTEGER : [0-9]+;
+// --------- ESC-Color 256/RGB  mode: -----------
+
+mode ESC_SEQ_COLOR;
+ESC_SEQ_INTEGER : [0-9]+ -> popMode;

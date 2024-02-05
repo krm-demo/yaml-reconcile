@@ -71,10 +71,40 @@ public class AnsiEscSeqTest {
     })
     void testSingleEscSeq(String inputAnsiFmt, String content, String escWithLS, String strSpanStyles) {
         AnsiText ansiTxt = AnsiText.ansiText(unescapeEsqSeq(inputAnsiFmt));
-        System.out.println("inputEsqSeq : " + inputAnsiFmt);
+        System.out.println("inputEsqSeq    : " + inputAnsiFmt);
         System.out.println("actualContent  : " + ansiTxt.content());
-        System.out.println("actualDump  : " + ansiTxt.dump());
+        System.out.println(ansiTxt.dump());
         System.out.println("escapeJavaWithLS(ansiTxt)  : " + escapeJavaWithLS(ansiTxt));
+//        System.out.println("charSeq-before : " + inputAnsiFmt.chars().mapToObj(c -> format("0x%02x", c)).toList());
+//        System.out.println("charSeq-after  : " + unescapeEsqSeq(inputAnsiFmt).chars().mapToObj(c -> format("0x%02x", c)).toList());
+//        System.out.println("charSeq-renderAnsi  : " + ansiTxt.renderAnsi().chars().mapToObj(c -> format("0x%02x", c)).toList());
+        assertThat(ansiTxt.content()).isEqualTo(content);
+        assertThat(escapeJavaWithLS(ansiTxt)).isEqualTo(escWithLS);
+        assertThat("" + ansiTxt.spanStyles().toList()).isEqualTo(strSpanStyles);
+    }
+
+    @ParameterizedTest
+    @CsvSource(delimiterString = " ::: ", value = {
+        ">>> \\u001b[31m'red'\\u001b[39m <<<" +
+            " ::: >>> 'red' <<<" +
+            " ::: >>> \\u001B[31m'red'\\u001B[39m <<<" +
+            " ::: [ansi-style-empty, ansi-style<fg(red)>, ansi-style<!fg>]",
+        ">>> \\u001b[38;5;1m'#01'\\u001b[39m <<<" +
+            " ::: >>> '#01' <<<" +
+            " ::: >>> \\u001B[38;5;1m'#01'\\u001B[39m <<<" +
+            " ::: [ansi-style-empty, ansi-style<fg(#01)>, ansi-style<!fg>]",
+        ">>> \\u001b[47m'on grey'\\u001b[49m <<<" +
+            " ::: >>> 'on grey' <<<" +
+            " ::: >>> \\u001B[47m'on grey'\\u001B[49m <<<" +
+            " ::: [ansi-style-empty, ansi-style<bg(white)>, ansi-style<!bg>]",
+//        "inputAnsiFmt ::: content ::: escWithLS ::: strSpanStyles",
+    })
+    void testColorEscSeq(String inputAnsiFmt, String content, String escWithLS, String strSpanStyles) {
+        AnsiText ansiTxt = AnsiText.ansiText(unescapeEsqSeq(inputAnsiFmt));
+        System.out.printf("%s : '%s'%n", "inputEsqSeq", inputAnsiFmt);
+        System.out.printf("%s : '%s'%n", "ansiTxt.renderAnsi()", ansiTxt.renderAnsi());
+        System.out.printf("%s : '%s'%n", "escapeJavaWithLS(ansiTxt)", escapeJavaWithLS(ansiTxt));
+        System.out.println(ansiTxt.dump());
 //        System.out.println("charSeq-before : " + inputAnsiFmt.chars().mapToObj(c -> format("0x%02x", c)).toList());
 //        System.out.println("charSeq-after  : " + unescapeEsqSeq(inputAnsiFmt).chars().mapToObj(c -> format("0x%02x", c)).toList());
 //        System.out.println("charSeq-renderAnsi  : " + ansiTxt.renderAnsi().chars().mapToObj(c -> format("0x%02x", c)).toList());
