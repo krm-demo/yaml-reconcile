@@ -242,6 +242,11 @@ public class AnsiStyleAttr implements Comparable<AnsiStyleAttr> {
             this.fg = createAndRegister(Operation.apply, FOREGROUND, colorName, fgCode);
             this.bg = createAndRegister(Operation.apply, BACKGROUND, colorName, bgCode);
         }
+
+        @Override
+        public String toString() {
+            return super.toString() + format("{%s;%s}", fg, bg);
+        }
     }
 
     public static AnsiStyleAttr bg(Color color) {
