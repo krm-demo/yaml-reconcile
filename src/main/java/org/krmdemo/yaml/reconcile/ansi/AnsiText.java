@@ -27,8 +27,8 @@ import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.emptyBuilder;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.resetAll;
 
 /**
- * This class represents the multi-line text with global outer ansi-style and sequential fragments
- * with their own ansi-style that are applied according to nested hierarchy.
+ * This class represents the multi-line text with global outer ansi-style and sequential fragments of
+ * {@link AnsiSpan}s, which are grouped by {@link Line})
  * <p/>
  * The class is not immutable and could also be used as a builder of its content
  * during parsing the formatted ansi-text or programmatically.
@@ -37,72 +37,13 @@ import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.resetAll;
 public class AnsiText implements AnsiStyle.Holder {
 
     /**
-     * Immutable class that represents a continues fragment of text within the same line and the same ansi-style,
-     * which is mostly correspond to HTML element <code>&lt;span&gt;</code>.
-     */
-    public class Span implements AnsiStyle.Holder {
-
-        private final AnsiStyle style;
-        private final String content;
-
-        private Span(AnsiStyle style, String content) {
-            requireNonNull(content, "span's content must be NOT null");
-            requireNonNull(content, "span's style must be NOT null");
-            this.content = content;
-            this.style = style;
-        }
-
-        /**
-         * @return the content of this span of text without any styles
-         */
-        public String content() {
-            return content;
-        }
-
-        /**
-         * @return the ansy-style of this span of text
-         */
-        public Optional<AnsiStyle> style() {
-            return Optional.ofNullable(style);
-        }
-
-        /**
-         * @return a holder of this span of text, which is an outer {@link AnsiText}
-         */
-        public Optional<AnsiStyle.Holder> parent() {
-            return Optional.of(AnsiText.this);
-        }
-
-        /**
-         * @return the length of this span of text
-         */
-        public int width() {
-            return content.length();
-        }
-
-        /**
-         * @return the content of span, surrounded with open and close escape-sequences
-         */
-        public String renderAnsi() {
-            return styleOpen().renderAnsi() + content() + styleClose().renderAnsi();
-        }
-
-        /**
-         * @return dump the {@link AnsiText.Span} object for debug purposes
-         */
-        public String dump() {
-            return format(":: - span width=%3d |%-30s<|%s|>", content.length(), style.dump(), content);
-        }
-    }
-
-    /**
      * A line of multi-line {@link AnsiText} (without trailing line-separator),
      * which consist of continues sequence of spans with different ansi-styles of any two siblings.
      */
-    public class Line {
-        private final List<Span> spans = new ArrayList<>();
+    public static class Line {
+        private final List<AnsiSpan> spans = new ArrayList<>();
 
-        public Stream<Span> spans() {
+        public Stream<AnsiSpan> spans() {
             return spans.stream();
         }
 
@@ -110,11 +51,11 @@ public class AnsiText implements AnsiStyle.Holder {
          * @return content of text-line without any ansi-styles
          */
         public String content() {
-            return spans().map(Span::content).collect(joining());
+            return spans().map(AnsiSpan::content).collect(joining());
         }
 
         public int width() {
-            return spans().mapToInt(Span::width).sum();
+            return spans().mapToInt(AnsiSpan::width).sum();
         }
 
         public String renderSpans() {
@@ -131,7 +72,7 @@ public class AnsiText implements AnsiStyle.Holder {
                 sb.append(renderCtx().getLineStyleBuilder().build().renderAnsi());
                 return sb.toString();
             } else {
-                return spans().map(Span::renderAnsi).collect(joining());
+                return spans().map(AnsiSpan::renderAnsi).collect(joining());
             }
         }
 
@@ -155,13 +96,12 @@ public class AnsiText implements AnsiStyle.Holder {
                 return ":: empty line ::";
             } else {
                 return format(":: line of %d spans ( width = %3d ) ::%n%s",
-                    spans.size(), width(), spans().map(Span::dump).collect(joining(lineSeparator())));
+                    spans.size(), width(), spans().map(AnsiSpan::dump).collect(joining(lineSeparator())));
             }
         }
 
         public void appendSpan(AnsiStyle style, String content) {
-            Span newSpan = new Span(style, content);
-            spans.add(newSpan);
+            spans.add(AnsiSpan.create(style, content));
         }
     }
 
@@ -199,7 +139,7 @@ public class AnsiText implements AnsiStyle.Holder {
      * @return sequence of ansi-styles used in this text
      */
     public Stream<AnsiStyle> spanStyles() {
-        return lines.stream().flatMap(Line::spans).map(Span::style).flatMap(Optional::stream);
+        return lines.stream().flatMap(Line::spans).map(AnsiSpan::style).flatMap(Optional::stream);
     }
 
     /**

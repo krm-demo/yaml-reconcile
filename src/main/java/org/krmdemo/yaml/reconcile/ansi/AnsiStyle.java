@@ -1,6 +1,8 @@
 package org.krmdemo.yaml.reconcile.ansi;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -24,15 +26,18 @@ public class AnsiStyle {
      * An interface that holder of cascading ansi-style should implement
      */
     public interface Holder {
-        /**
-         * @return own style-property value
-         */
-        Optional<AnsiStyle> style();
 
         /**
          * @return outer component, which provide the default style
          */
         default Optional<Holder> parent() {
+            return Optional.empty();
+        }
+
+        /**
+         * @return own style-property value
+         */
+        default Optional<AnsiStyle> style() {
             return Optional.empty();
         }
 
@@ -139,6 +144,22 @@ public class AnsiStyle {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        AnsiStyle ansiStyle = (AnsiStyle) o;
+
+        return new EqualsBuilder().append(attrs, ansiStyle.attrs).isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37).append(attrs).toHashCode();
+    }
+
+    @Override
     public String toString() {
         return dump();
     }
@@ -186,7 +207,7 @@ public class AnsiStyle {
         }
 
         public AnsiStyle build() {
-            return new AnsiStyle(attrsMap.values().stream());
+            return attrsMap.isEmpty() ? empty() : new AnsiStyle(attrsMap.values().stream());
         }
 
         public Builder accept(AnsiStyleAttr styleAttr) {

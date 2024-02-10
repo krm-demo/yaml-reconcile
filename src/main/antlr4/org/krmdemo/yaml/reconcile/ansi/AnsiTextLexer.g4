@@ -75,11 +75,11 @@ ESC_SEQ_SEP : ';';
 ESC_SEQ_RESET_ALL : '0' { setText(RESET_ALL.name()); };
 
 ESC_SEQ_RESET_BOLD_DIM :      '22' { setText(RESET_BOLD.name()); };
-ESC_SEQ_RESET_ITALIC :        '23' { setText(APPLY_ITALIC.name()); };
-ESC_SEQ_RESET_UNDERLINE :     '24' { setText(APPLY_UNDERLINE.name()); };
-ESC_SEQ_RESET_BLINKING :      '25' { setText(APPLY_BLINKING.name()); };
-ESC_SEQ_RESET_INVERSE :       '27' { setText(APPLY_INVERSE.name()); };
-ESC_SEQ_RESET_HIDDEN :        '28' { setText(APPLY_HIDDEN.name()); };
+ESC_SEQ_RESET_ITALIC :        '23' { setText(RESET_ITALIC.name()); };
+ESC_SEQ_RESET_UNDERLINE :     '24' { setText(RESET_UNDERLINE.name()); };
+ESC_SEQ_RESET_BLINKING :      '25' { setText(RESET_BLINKING.name()); };
+ESC_SEQ_RESET_INVERSE :       '27' { setText(RESET_INVERSE.name()); };
+ESC_SEQ_RESET_HIDDEN :        '28' { setText(RESET_HIDDEN.name()); };
 ESC_SEQ_RESET_STRIKETHROUGH : '29' { setText(RESET_STRIKETHROUGH.name()); };
 
 ESC_SEQ_RESET_FG_COLOR : '39' { setText(RESET_FG.name()); };
@@ -141,7 +141,7 @@ ESC_SEQ_BG_RGB : '48;2;' -> pushMode(ESC_SEQ_COLOR_RGB_MODE);
 mode ESC_SEQ_COLOR_256_MODE;
 ESC_SEQ_INTEGER : [0-9]+ -> popMode;
 
-// --------- ESC-Color-256 mode: -----------
+// --------- ESC-Color-RGB mode: -----------
 
 mode ESC_SEQ_COLOR_RGB_MODE;
 ESC_SEQ_RGB : [0-9]+ ';' [0-9]+ ';' [0-9]+ -> popMode;

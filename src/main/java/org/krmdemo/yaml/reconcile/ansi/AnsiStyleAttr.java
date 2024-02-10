@@ -55,7 +55,7 @@ public class AnsiStyleAttr implements Comparable<AnsiStyleAttr> {
         }
 
         Family(String familyName, String formatString) {
-            this.familyName = familyName == null ? name() : familyName;
+            this.familyName = familyName == null ? name() : familyName; // <-- TODO: looks like redundant
             this.formatString = formatString;
         }
 

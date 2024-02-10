@@ -21,6 +21,9 @@ import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.bg;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.fg;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.lookupByName;
 
+/**
+ * Unit-test to check the functionality of {@link AnsiStyle} class
+ */
 @TestMethodOrder(MethodOrderer.DisplayName.class)
 public class AnsiStyleTest {
 

@@ -13,6 +13,9 @@ import static org.krmdemo.yaml.reconcile.ansi.AnsiText.ansiText;
 import static org.krmdemo.yaml.reconcile.test.ansi.AnsiTestUtils.escapeJavaWithLS;
 import static org.krmdemo.yaml.reconcile.test.ansi.AnsiTestUtils.unescapeEsqSeq;
 
+/**
+ * Unit-test to check the parsing of escape-sequences in {@link AnsiText}
+ */
 public class AnsiEscSeqTest {
 
     @BeforeEach
@@ -24,14 +27,15 @@ public class AnsiEscSeqTest {
 
     @DisplayName("output '@|' and '|@'")
     @Test void testAtSymbolWithDoublePipe() {
-        System.out.println("no ansi-styles:");
+        System.out.println("------------------ no ansi-styles: ---------------------");
         System.out.println(ansiText(">>> @|| <<<").renderAnsi());
         System.out.println(ansiText(">>> ||@ <<<").renderAnsi());
         System.out.println(ansiText(">>> @||la-la-la <<<").renderAnsi());
         System.out.println(ansiText(">>> la-la-la||@ <<<").renderAnsi());
         System.out.println(ansiText(">>> @||la-la-la||@ <<<").renderAnsi());
 
-        System.out.println("ansi-styles (some foreground colors):");
+        System.out.println("-------- ansi-styles (some foreground colors): ---------");
+        System.out.println();
         System.out.println(ansiText(">>> @|red;@|||@ <<<").renderAnsi());
         System.out.println(ansiText(">>> @|blue;||@|@ <<<").renderAnsi());
         System.out.println(ansiText(">>> @|red;@||la-la-la|@ <<<").renderAnsi());
@@ -63,12 +67,13 @@ public class AnsiEscSeqTest {
             " ::: [ansi-style-empty, ansi-style<bold,dim,italic,underline,blinking>]",
         ">>> apply-and-reset \\u001b[25;23;4;1;9m <<<" +
             " ::: >>> apply-and-reset  <<<" +
-            " ::: >>> apply-and-reset \\u001B[1;3;4;5;9m <<<\\u001B[22;23;24;25;29m" +
-            " ::: [ansi-style-empty, ansi-style<bold,italic,underline,blinking,strikethrough>]",
+            " ::: >>> apply-and-reset \\u001B[1;4;9m <<<\\u001B[22;24;29m" +
+            " ::: [ansi-style-empty, ansi-style<bold,!italic,underline,!blinking,strikethrough>]",
 //        "inputAnsiFmt ::: content ::: escWithLS ::: strSpanStyles",
     })
     void testSingleEscSeq(String inputAnsiFmt, String content, String escWithLS, String strSpanStyles) {
         AnsiText ansiTxt = AnsiText.ansiText(unescapeEsqSeq(inputAnsiFmt));
+        System.out.println("--------------------------------------------------------");
         System.out.println("inputEsqSeq    : " + inputAnsiFmt);
         System.out.println("actualContent  : " + ansiTxt.content());
         System.out.println(ansiTxt.dump());
@@ -111,6 +116,7 @@ public class AnsiEscSeqTest {
     })
     void testColorEscSeq(String inputAnsiFmt, String content, String escWithLS, String strSpanStyles) {
         AnsiText ansiTxt = AnsiText.ansiText(unescapeEsqSeq(inputAnsiFmt));
+        System.out.println("--------------------------------------------------------");
         System.out.printf("%s : '%s'%n", "inputEsqSeq", inputAnsiFmt);
         System.out.printf("%s : '%s'%n", "ansiTxt.renderAnsi()", ansiTxt.renderAnsi());
         System.out.printf("%s : '%s'%n", "escapeJavaWithLS(ansiTxt)", escapeJavaWithLS(ansiTxt));
