@@ -1,6 +1,5 @@
 package org.krmdemo.yaml.reconcile.ansi;
 
-
 import java.util.stream.Stream;
 
 /**
@@ -19,7 +18,7 @@ public class AnsiBlock {
      * @param contentPosTo the stop-position of in source line  content (inclusive)
      * @return a sub-line with content of source line in the range <code>[contentPosFrom;contentPosTo)</code>.
      */
-    public static Stream<AnsiSpan> subLine(AnsiText.Line line, int contentPosFrom, int contentPosTo) {
+    public static Stream<AnsiSpan> subLine(AnsiLine line, int contentPosFrom, int contentPosTo) {
         return Stream.empty();
     }
 }

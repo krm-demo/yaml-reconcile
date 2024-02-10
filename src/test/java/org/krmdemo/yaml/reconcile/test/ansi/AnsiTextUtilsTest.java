@@ -36,11 +36,11 @@ public class AnsiTextUtilsTest {
         "2 ::: some text @|bold with bold @|red and red|@ fragament|@ at the first line"
     })
     void testSubSpans(int lineNum) {
-        AnsiText.Line line = ansiText.lines().get(lineNum);
-        System.out.printf("------- ansiText.lines[%d].renderAnsi(): ----------------%n", lineNum);
-        System.out.printf("|%s|%n", line.renderAnsi());
-        System.out.printf("------- ansiText.lines[%d].content(): -------------------%n", lineNum);
-        System.out.printf("|%s|%n", line.content());
+//        AnsiText.Line line = ansiText.lines().get(lineNum);
+//        System.out.printf("------- ansiText.lines[%d].renderAnsi(): ----------------%n", lineNum);
+//        System.out.printf("|%s|%n", line.renderAnsi());
+//        System.out.printf("------- ansiText.lines[%d].content(): -------------------%n", lineNum);
+//        System.out.printf("|%s|%n", line.content());
         //String subContent = AnsiTextUtils.subSpans(line.spans(), 0, 0);
     }
 }

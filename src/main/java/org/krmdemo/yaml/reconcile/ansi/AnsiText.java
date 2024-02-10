@@ -17,7 +17,6 @@ import java.util.stream.Stream;
 import static java.lang.Integer.parseInt;
 import static java.lang.String.format;
 import static java.lang.System.lineSeparator;
-import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.text.StringEscapeUtils.escapeJava;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiRenderCtx.renderCtx;
@@ -33,13 +32,13 @@ import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.resetAll;
  * during parsing the formatted ansi-text or programmatically.
  */
 @Slf4j
-public class AnsiText {
+public class AnsiText implements AnsiSize {
 
     /**
      * A line of multi-line {@link AnsiText} (without trailing line-separator),
      * which consist of continues sequence of spans with different ansi-styles of any two siblings.
      */
-    public static class Line {
+    private static class Line {
         private final List<AnsiSpan> spans = new ArrayList<>();
 
         public Stream<AnsiSpan> spans() {
@@ -109,11 +108,18 @@ public class AnsiText {
     private AnsiStyle.Builder styleBuilder = empty().builder();
     private final LinkedList<AnsiStyle> styleStack = new LinkedList<>();
 
-    /**
-     * @return the lines of this ansi-text (each consista of spans)
-     */
-    public List<Line> lines() {
-        return unmodifiableList(this.lines);
+    @Override
+    public int height() {
+        return lines.size();
+    }
+
+    @Override
+    public int width() {
+        return lines.stream().mapToInt(Line::width).max().orElse(0);
+    }
+
+    public Stream<AnsiSpan> lineSpansAt(int lineNum) {
+        return lineNum < 0 || lineNum >= lines.size() ? Stream.empty() : lines.get(lineNum).spans();
     }
 
     /**
