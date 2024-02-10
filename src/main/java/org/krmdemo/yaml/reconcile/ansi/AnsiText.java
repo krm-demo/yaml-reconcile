@@ -18,7 +18,6 @@ import static java.lang.Integer.parseInt;
 import static java.lang.String.format;
 import static java.lang.System.lineSeparator;
 import static java.util.Collections.unmodifiableList;
-import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.text.StringEscapeUtils.escapeJava;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiRenderCtx.renderCtx;
@@ -34,7 +33,7 @@ import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.resetAll;
  * during parsing the formatted ansi-text or programmatically.
  */
 @Slf4j
-public class AnsiText implements AnsiStyle.Holder {
+public class AnsiText {
 
     /**
      * A line of multi-line {@link AnsiText} (without trailing line-separator),
@@ -105,28 +104,10 @@ public class AnsiText implements AnsiStyle.Holder {
         }
     }
 
-    private final AnsiStyle style;
-
     private final List<Line> lines = new ArrayList<>();
 
     private AnsiStyle.Builder styleBuilder = empty().builder();
     private final LinkedList<AnsiStyle> styleStack = new LinkedList<>();
-
-    private AnsiText(AnsiStyle style) {
-        this.style = style;
-    }
-
-    private AnsiText(AnsiStyle style, List<Line> lines) {
-        this(style);
-        this.lines.addAll(lines);
-    }
-
-    /**
-     * @return an optional global ansi-style within this ansi-text
-     */
-    public Optional<AnsiStyle> style() {
-        return Optional.ofNullable(style);
-    }
 
     /**
      * @return the lines of this ansi-text (each consista of spans)
@@ -195,32 +176,12 @@ public class AnsiText implements AnsiStyle.Holder {
         return this;
     }
 
-    public AnsiText withStyle (AnsiStyle style) {
-        return new AnsiText(style, this.lines);
-    }
-
     public static AnsiText ansiText() {
-        return new AnsiText(empty());
-    }
-
-    public static AnsiText ansiText(AnsiStyle style) {
-        return new AnsiText(style);
-    }
-
-    public static AnsiText ansiText(AnsiStyle style, AnsiText ansiText) {
-        return ansiText.withStyle(style);
-    }
-
-    public static AnsiText ansiText(AnsiText ansiText) {
-        return new AnsiText(ansiText.style, ansiText.lines);
+        return new AnsiText();
     }
 
     public static AnsiText ansiText(String text) {
-        return ansiText(empty(), text);
-    }
-
-    public static AnsiText ansiText(AnsiStyle style, String text) {
-        AnsiText ansiText = ansiText(style);
+        AnsiText ansiText = new AnsiText();
         ParseTree textTree = ansiText.parseText(text);
 //        log.trace("textTree:\n" + dumpParseTree(textTree));
 //        log.trace("=====================================");
