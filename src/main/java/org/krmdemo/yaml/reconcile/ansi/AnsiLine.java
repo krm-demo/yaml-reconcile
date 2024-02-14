@@ -1,6 +1,10 @@
 package org.krmdemo.yaml.reconcile.ansi;
 
+import org.antlr.v4.runtime.misc.Interval;
+
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
@@ -9,8 +13,18 @@ import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.stream;
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang3.StringUtils.repeat;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiRenderCtx.renderCtx;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.emptyBuilder;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.resetAll;
 
-public class AnsiLine {
+/**
+ * Immutable continues sequence of {@link AnsiSpan}s with different ansi-styles of any two siblings,
+ * that represent the line of text at ansi-terminal (without trailing line-separator).
+ */
+public class AnsiLine implements AnsiSize {
 
     private final List<AnsiSpan> spans;
 
@@ -22,16 +36,78 @@ public class AnsiLine {
         return spans.stream();
     }
 
-    public static AnsiLine create(AnsiStyle.Holder parentStyleHolder, AnsiLine ...lines) {
-        return stream(lines).flatMap(AnsiLine::spans).collect(builder(parentStyleHolder).collector());
+    public String content() {
+        return spans().map(AnsiSpan::content).collect(joining());
+    }
+
+    @Override
+    public int height() {
+        return 1;
+    }
+
+    @Override
+    public int width() {
+        return spans().mapToInt(AnsiSpan::width).max().orElse(0);
     }
 
     public static AnsiLine create(AnsiStyle.Holder parentStyleHolder, Stream<AnsiSpan> spanStream) {
-        return spanStream.collect(builder(parentStyleHolder).collector());
+        return spanStream.collect(builder(parentStyleHolder));
+    }
+
+    public static AnsiLine create(AnsiStyle.Holder parentStyleHolder, AnsiLine... lines) {
+        return stream(lines).flatMap(AnsiLine::spans).collect(builder(parentStyleHolder));
+    }
+
+    /**
+     * @param parentStyleHolder a reference of parrent holder of ansi-style
+     * @param contentPosFrom the start-position of in source line content (inclusive)
+     * @param contentPosTo the stop-position of in source line  content (inclusive)
+     * @return a sub-line with content of source line in the range <code>[contentPosFrom;contentPosTo)</code>.
+     */
+    public AnsiLine subLine(AnsiStyle.Holder parentStyleHolder, int contentPosFrom, int contentPosTo) {
+        AtomicInteger contentPos = new AtomicInteger(0);
+        return spans.stream()
+            .flatMap(span -> span.subSpan(
+                contentPosFrom - contentPos.get(),
+                contentPosTo - contentPos.get()).stream())
+            .peek(span -> contentPos.getAndAdd(span.width()))
+            .collect(builder(parentStyleHolder));
+    }
+
+    public String renderSpans() {
+        StringBuilder sb = new StringBuilder();
+        renderCtx().setLineStyleBuilder(emptyBuilder());
+        spans().forEach(span -> {
+            span.style().map(renderCtx().getLineStyleBuilder()::apply);
+            sb.append(renderCtx().getLineStyleBuilder().build().renderAnsi());
+            sb.append(span.content());
+            renderCtx().setLineStyleBuilder(emptyBuilder());
+            span.style().map(renderCtx().getLineStyleBuilder()::reset);
+        });
+        sb.append(renderCtx().getLineStyleBuilder().build().renderAnsi());
+        return sb.toString();
+    }
+
+    public String renderAnsi() {
+        StringBuilder sb = new StringBuilder();
+        if (renderCtx().isLinePrefixResetAll()) {
+            sb.append(resetAll().renderAnsi());
+        }
+        sb.append(this.renderSpans());
+        if (renderCtx().isLineSuffixResetAll()) {
+            sb.append(resetAll().renderAnsi());
+        }
+        return sb.toString();
     }
 
     public static Builder builder(AnsiStyle.Holder parentStyleHolder) {
         return new Builder(parentStyleHolder);
+    }
+
+    private static final AnsiLine LINE_EMPTY = new AnsiLine(emptyList());
+
+    public static AnsiLine empty() {
+        return LINE_EMPTY;
     }
 
     public static class Builder implements Collector<AnsiSpan, List<AnsiSpan>, AnsiLine> {
@@ -47,24 +123,25 @@ public class AnsiLine {
             return new AnsiLine(spansList);
         }
 
-        public Builder span(AnsiSpan span) {
-            this.accumulate(this.spansList, span);
+        public Builder append(AnsiSpan... spans) {
+            return append(stream(spans));
+        }
+
+        public Builder append(Stream<AnsiSpan> spanStream) {
+            spanStream.forEach(span -> accumulate(this.spansList, span));
             return this;
-        }
-
-        public AnsiLine collect(Stream<AnsiSpan> spanStream) {
-            return spanStream.collect(this.collector());
-        }
-
-        public Collector<AnsiSpan, List<AnsiSpan>, AnsiLine> collector() {
-            return Collector.of(this::spansList, this::accumulate, this::combine, this::finish);
         }
 
         private List<AnsiSpan> spansList() { return spansList; }
 
         private void accumulate(List<AnsiSpan> spansList, AnsiSpan span) {
-            // implement merging styles and content here:
-            spansList.add(span.copy(parentStyleHolder));
+            if (spansList.isEmpty() || !spansList.getLast().hasTheSameStyle(span)) {
+                spansList.add(span.copy(parentStyleHolder));
+            } else {
+                AnsiStyle bothStyle = span.style().orElse(null);
+                String bothContent = spansList.getLast().content() + span.content();
+                spansList.set(spansList.size() - 1, AnsiSpan.create(bothStyle, bothContent));
+            }
         }
 
         private List<AnsiSpan> combine(List<AnsiSpan> left, List<AnsiSpan> right) {
@@ -73,7 +150,7 @@ public class AnsiLine {
         }
 
         private AnsiLine finish(List<AnsiSpan> spansList) {
-            return new AnsiLine(spansList);
+            return spansList.isEmpty() ? empty() : new AnsiLine(spansList);
         }
 
         @Override

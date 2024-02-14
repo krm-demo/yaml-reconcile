@@ -21,6 +21,7 @@ import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.lookupResetFamily;
 public class AnsiStyle {
 
     private static final String DELIMITER_ANSI_SEQ = ";";
+    private static final String DELIMITER_ATTR_NAMES = ",";
 
     /**
      * An interface that holder of cascading ansi-style should implement
@@ -133,30 +134,35 @@ public class AnsiStyle {
     }
 
     /**
+     * @return string representation of all attributes
+     */
+    public String attrsNamesStr() {
+        return attrsNames().collect(joining(DELIMITER_ATTR_NAMES));
+    }
+    /**
      * @return dump the {@link AnsiStyle} object for debug purposes
      */
     public String dump() {
-        if (attrs.isEmpty()) {
+        if (this.isEmpty()) {
             return "ansi-style-empty";
         } else {
-            return format("ansi-style<%s>", attrsNames().collect(joining(",")));
+            return format("ansi-style<%s>", this.attrsNamesStr());
         }
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-
-        if (o == null || getClass() != o.getClass()) return false;
-
-        AnsiStyle ansiStyle = (AnsiStyle) o;
-
-        return new EqualsBuilder().append(attrs, ansiStyle.attrs).isEquals();
+    public boolean equals(Object thatObj) {
+        if (this == thatObj) return true;
+        if (thatObj instanceof AnsiStyle that) {
+            return this.attrsNamesStr().equals(that.attrsNamesStr());
+        } else {
+            return false;
+        }
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37).append(attrs).toHashCode();
+        return this.attrsNamesStr().hashCode();
     }
 
     @Override

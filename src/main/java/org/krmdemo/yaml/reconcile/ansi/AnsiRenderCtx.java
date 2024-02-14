@@ -21,7 +21,6 @@ public class AnsiRenderCtx {
         return threadLocal.get();
     }
 
-    private boolean siblingStylesSquash = true;
     private boolean linePrefixResetAll = false;
     private boolean lineSuffixResetAll = false;
 

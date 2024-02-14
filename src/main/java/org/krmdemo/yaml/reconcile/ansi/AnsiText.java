@@ -35,7 +35,7 @@ import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.resetAll;
 public class AnsiText implements AnsiSize {
 
     /**
-     * A line of multi-line {@link AnsiText} (without trailing line-separator),
+     * A mutable parsing-line of multi-line {@link AnsiText} (without trailing line-separator),
      * which consist of continues sequence of spans with different ansi-styles of any two siblings.
      */
     private static class Line {
@@ -56,34 +56,8 @@ public class AnsiText implements AnsiSize {
             return spans().mapToInt(AnsiSpan::width).sum();
         }
 
-        public String renderSpans() {
-            if (renderCtx().isSiblingStylesSquash()) {
-                StringBuilder sb = new StringBuilder();
-                renderCtx().setLineStyleBuilder(emptyBuilder());
-                spans().forEach(span -> {
-                    span.style().map(renderCtx().getLineStyleBuilder()::apply);
-                    sb.append(renderCtx().getLineStyleBuilder().build().renderAnsi());
-                    sb.append(span.content());
-                    renderCtx().setLineStyleBuilder(emptyBuilder());
-                    span.style().map(renderCtx().getLineStyleBuilder()::reset);
-                });
-                sb.append(renderCtx().getLineStyleBuilder().build().renderAnsi());
-                return sb.toString();
-            } else {
-                return spans().map(AnsiSpan::renderAnsi).collect(joining());
-            }
-        }
-
         public String renderAnsi() {
-            StringBuilder sb = new StringBuilder();
-            if (renderCtx().isLinePrefixResetAll()) {
-                sb.append(resetAll().renderAnsi());
-            }
-            sb.append(this.renderSpans());
-            if (renderCtx().isLineSuffixResetAll()) {
-                sb.append(resetAll().renderAnsi());
-            }
-            return sb.toString();
+            return spans().map(AnsiSpan::renderAnsi).collect(joining());
         }
 
         /**
@@ -120,6 +94,15 @@ public class AnsiText implements AnsiSize {
 
     public Stream<AnsiSpan> lineSpansAt(int lineNum) {
         return lineNum < 0 || lineNum >= lines.size() ? Stream.empty() : lines.get(lineNum).spans();
+    }
+
+    public int lineWidthAt(int lineNum) {
+        return lineNum < 0 || lineNum >= lines.size() ? 0 : lines.get(lineNum).width();
+    }
+
+    public AnsiLine lineAt(int lineNum) {
+        return lineNum < 0 || lineNum >= lines.size() ?
+            AnsiLine.empty() : AnsiLine.create(null, lineSpansAt(lineNum));
     }
 
     /**

@@ -19,7 +19,6 @@ public class AnsiTextUtilsTest {
 
     @BeforeAll
     static void before() {
-        renderCtx().setSiblingStylesSquash(true);
         renderCtx().setLinePrefixResetAll(false);
         renderCtx().setLineSuffixResetAll(false);
 

@@ -80,9 +80,13 @@ public class AnsiSpan implements AnsiStyle.Holder, AnsiSize {
     }
 
     /**
-     * @return dump the {@link AnsiText.Span} object for debug purposes
+     * @return dump the {@link AnsiSpan} object for debug purposes
      */
     public String dump() {
         return format(":: - span width=%3d |%-30s<|%s|>", content.length(), style.dump(), content);
+    }
+
+    public boolean hasTheSameStyle(AnsiSpan that) {
+        return this.style().equals(that.style());
     }
 }
