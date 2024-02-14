@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.repeat;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiRenderCtx.renderCtx;
@@ -175,7 +176,7 @@ public class AnsiLine implements AnsiSize {
 
         @Override
         public Set<Characteristics> characteristics() {
-            return null;
+            return emptySet();
         }
     }
 }

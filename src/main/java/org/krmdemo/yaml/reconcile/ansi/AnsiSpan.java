@@ -49,7 +49,6 @@ public class AnsiSpan implements AnsiStyle.Holder, AnsiSize {
     @Override
     public Optional<AnsiStyle.Holder> parent() {
         return Optional.ofNullable(this.parent);
-
     }
 
     public String content() {

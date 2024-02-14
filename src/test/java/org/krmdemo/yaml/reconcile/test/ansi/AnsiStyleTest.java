@@ -8,6 +8,7 @@ import org.krmdemo.yaml.reconcile.ansi.AnsiStyle;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.ansiStyle;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.empty;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.resetAll;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.APPLY_BOLD;
@@ -159,14 +160,17 @@ public class AnsiStyleTest {
     @Test
     @DisplayName("AnsiStyle.builder()..build()")
     void testStyleBuilder() {
-        AnsiStyle styleDirect = empty().builder()
+        AnsiStyle styleFromBuilder = empty().builder()
             .accept(APPLY_BOLD)
             .accept(bg(123))
             .accept(fg(45))
             .accept(RESET_ITALIC)
             .build();
-        assertThat(styleDirect.renderAnsi()).isEqualTo("\u001b[1;23;38;5;45;48;5;123m");
-        assertThat(styleDirect.dump()).isEqualTo("ansi-style<bold,!italic,fg(#2D),bg(#7B)>");
+        assertThat(styleFromBuilder.renderAnsi()).isEqualTo("\u001b[1;23;38;5;45;48;5;123m");
+        assertThat(styleFromBuilder.dump()).isEqualTo("ansi-style<bold,!italic,fg(#2D),bg(#7B)>");
+
+        AnsiStyle styleDirect = ansiStyle(APPLY_BOLD, bg(123), fg(45), RESET_ITALIC);
+        assertThat(styleDirect).isEqualTo(styleFromBuilder);
 
         AnsiStyle styleLookup = empty().builder()
             .acceptByName("underline")

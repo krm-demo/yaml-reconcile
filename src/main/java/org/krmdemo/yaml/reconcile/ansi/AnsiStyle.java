@@ -8,6 +8,7 @@ import java.util.*;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.RESET_ALL;
@@ -139,6 +140,7 @@ public class AnsiStyle {
     public String attrsNamesStr() {
         return attrsNames().collect(joining(DELIMITER_ATTR_NAMES));
     }
+
     /**
      * @return dump the {@link AnsiStyle} object for debug purposes
      */
@@ -195,6 +197,14 @@ public class AnsiStyle {
     }
 
     /**
+     * @param styleAttrs var-array of ansi-style attributes
+     * @return ansi-style based on applying passed attributes to empty style
+     */
+    public static AnsiStyle ansiStyle(AnsiStyleAttr... styleAttrs) {
+        return emptyBuilder().acceptAll(styleAttrs).build();
+    }
+
+    /**
      * @return a new instance of {@link AnsiStyle.Builder} from empty style
      */
     public static Builder emptyBuilder() {
@@ -221,6 +231,11 @@ public class AnsiStyle {
                 attrsMap.clear();
             }
             attrsMap.put(styleAttr.family(), styleAttr);
+            return this;
+        }
+
+        public Builder acceptAll(AnsiStyleAttr... attrs) {
+            stream(attrs).forEach(this::accept);
             return this;
         }
 

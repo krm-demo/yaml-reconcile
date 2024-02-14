@@ -120,7 +120,7 @@ public class AnsiText implements AnsiSize {
     }
 
     /**
-     * @return ansi-text, which is properly decorated with ansi-sequences
+     * @return rendered ansi-text, which is properly decorated with ansi-sequences
      */
     public String renderAnsi() {
         return lines.stream().map(Line::renderAnsi).collect(joining(lineSeparator()));

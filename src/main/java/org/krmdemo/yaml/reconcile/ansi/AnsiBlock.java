@@ -1,14 +1,12 @@
 package org.krmdemo.yaml.reconcile.ansi;
 
-import lombok.Setter;
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
-import static java.util.Collections.emptyList;
+import static java.lang.System.lineSeparator;
+import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.repeat;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.ansiStyle;
 
 /**
  * This class represents a renderable rectangular block of screen. In enriches the wrapped {@link AnsiText}
@@ -35,6 +33,16 @@ public class AnsiBlock implements AnsiStyle.Holder, AnsiSize {
     }
 
     @Override
+    public Optional<AnsiStyle> style() {
+        return Optional.ofNullable(style);
+    }
+
+    @Override
+    public Optional<AnsiStyle.Holder> parent() {
+        return Optional.ofNullable(this.parent);
+    }
+
+    @Override
     public int height() {
         return height;
     }
@@ -48,8 +56,25 @@ public class AnsiBlock implements AnsiStyle.Holder, AnsiSize {
         return lines.get(lineNum);
     }
 
-    @Setter
-    static class Builder {
+    /**
+     * @return content of text without any ansi-styles, but properly aligned as rectangular block
+     */
+    public String content() {
+        return lines.stream().map(AnsiLine::content).collect(joining(lineSeparator()));
+    }
+
+    /**
+     * @return rendered ansi-text, which is properly decorated with ansi-sequences and aligned as rectangular block
+     */
+    public String renderAnsi() {
+        return lines.stream().map(AnsiLine::renderAnsi).collect(joining(lineSeparator()));
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
         private AnsiStyle.Holder parent = null;
         private AnsiStyle style = AnsiStyle.empty();
         private AnsiText ansiText = AnsiText.ansiText();
@@ -60,6 +85,65 @@ public class AnsiBlock implements AnsiStyle.Holder, AnsiSize {
         private Function<Integer, AnsiLine> rightIndent = lineNum -> AnsiLine.empty();
         private Horizontal horizontal = Horizontal.LEFT;
         private char paddingChar = ' ';
+
+        protected Builder() {
+            // force to use "AnsiBlock.builder()" to instantiate this builder
+        }
+
+        public Builder parent(AnsiStyle.Holder parent) {
+            this.parent = parent;
+            return this;
+        }
+
+        public Builder style(AnsiStyle style) {
+            this.style = style;
+            return this;
+        }
+
+        public Builder style(AnsiStyleAttr... styleAttrs) {
+            this.style = ansiStyle(styleAttrs);
+            return this;
+        }
+
+        public Builder ansiText(AnsiText ansiText) {
+            this.ansiText = ansiText;
+            return this;
+        }
+
+        public Builder contentWidth(Integer contentWidth) {
+            this.contentWidth = contentWidth;
+            return this;
+        }
+
+        public Builder leftIndentWidth(int leftIndentWidth) {
+            this.leftIndentWidth = leftIndentWidth;
+            return this;
+        }
+
+        public Builder rightIndentWidth(int rightIndentWidth) {
+            this.rightIndentWidth = rightIndentWidth;
+            return this;
+        }
+
+        public Builder leftIndent(Function<Integer, AnsiLine> leftIndent) {
+            this.leftIndent = leftIndent;
+            return this;
+        }
+
+        public Builder rightIndent(Function<Integer, AnsiLine> rightIndent) {
+            this.rightIndent = rightIndent;
+            return this;
+        }
+
+        public Builder horizontal(Horizontal horizontal) {
+            this.horizontal = horizontal;
+            return this;
+        }
+
+        public Builder paddingChar(char paddingChar) {
+            this.paddingChar = paddingChar;
+            return this;
+        }
 
         public AnsiBlock build() {
             int contentWidth = this.contentWidth != null ? this.contentWidth : ansiText.width();
