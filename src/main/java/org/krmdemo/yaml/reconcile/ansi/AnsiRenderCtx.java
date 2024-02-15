@@ -3,10 +3,6 @@ package org.krmdemo.yaml.reconcile.ansi;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import lombok.With;
-import lombok.experimental.WithBy;
-
-import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.emptyBuilder;
 
 /**
  * A thread-local singleton that keeps the context of ANSI- or HTML- rendering.
@@ -23,6 +19,4 @@ public class AnsiRenderCtx {
 
     private boolean linePrefixResetAll = false;
     private boolean lineSuffixResetAll = false;
-
-    private AnsiStyle.Builder lineStyleBuilder = emptyBuilder();
 }

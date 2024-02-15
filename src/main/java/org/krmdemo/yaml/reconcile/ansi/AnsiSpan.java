@@ -6,6 +6,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.empty;
 
 /**
  * Immutable class that represents a continues fragment of text within the same line and the same ansi-style,
@@ -33,6 +34,11 @@ public class AnsiSpan implements AnsiStyle.Holder, AnsiSize {
     public static AnsiSpan create(AnsiStyle style, String content) {
         return new AnsiSpan(null, style, content);
     }
+
+    public static AnsiSpan create(String content) {
+        return new AnsiSpan(null, null, content);
+    }
+
     public static AnsiSpan copyFrom(AnsiStyle.Holder newParent, AnsiSpan spanToCopy) {
         return new AnsiSpan(newParent, spanToCopy.style, spanToCopy.content);
     }
@@ -82,10 +88,15 @@ public class AnsiSpan implements AnsiStyle.Holder, AnsiSize {
      * @return dump the {@link AnsiSpan} object for debug purposes
      */
     public String dump() {
-        return format(":: - span width=%3d |%-30s<|%s|>", content.length(), style.dump(), content);
+        return format("ansi-span(%d)<%s|%s|%s>\"%s\"",
+            content.length(),
+            styleOpen().attrsNamesStr(),
+            style().orElse(empty()).attrsNamesStr(),
+            styleClose().attrsNamesStr(),
+            content);
     }
 
-    public boolean hasTheSameStyle(AnsiSpan that) {
-        return this.style().equals(that.style());
+    public boolean hasTheSameOpenStyle(AnsiSpan that) {
+        return this.styleOpen().equals(that.styleOpen());
     }
 }

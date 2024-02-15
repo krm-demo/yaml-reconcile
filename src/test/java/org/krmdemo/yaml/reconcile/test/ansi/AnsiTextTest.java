@@ -3,25 +3,16 @@ package org.krmdemo.yaml.reconcile.test.ansi;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.krmdemo.yaml.reconcile.ansi.AnsiStyle;
 import org.krmdemo.yaml.reconcile.ansi.AnsiText;
 
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import static java.lang.String.format;
-import static java.lang.System.lineSeparator;
 import static java.util.Arrays.asList;
-import static org.apache.commons.text.StringEscapeUtils.escapeJava;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiRenderCtx.renderCtx;
-import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.RESET_ALL;
 import static org.krmdemo.yaml.reconcile.test.ansi.AnsiTestUtils.escSeqByPos;
 import static org.krmdemo.yaml.reconcile.test.ansi.AnsiTestUtils.escapeJavaWithLS;
 import static org.krmdemo.yaml.reconcile.test.ansi.AnsiTestUtils.kv;
-import static org.krmdemo.yaml.reconcile.util.StreamUtils.toSortedMap;
 
 public class AnsiTextTest {
 
@@ -173,7 +164,6 @@ public class AnsiTextTest {
                 .containsExactly(format("ansi-style<%s>", fmtSt));
         });
     }
-
 
 
     @ParameterizedTest(name = "[{index}] {0}")

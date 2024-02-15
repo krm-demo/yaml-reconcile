@@ -1,10 +1,7 @@
 package org.krmdemo.yaml.reconcile.ansi;
 
-import org.antlr.v4.runtime.misc.Interval;
-
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
@@ -16,9 +13,7 @@ import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.joining;
-import static org.apache.commons.lang3.StringUtils.repeat;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiRenderCtx.renderCtx;
-import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.emptyBuilder;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.resetAll;
 
 /**
@@ -37,6 +32,20 @@ public class AnsiLine implements AnsiSize {
         return spans.stream();
     }
 
+    /**
+     * @return true if line is empty
+     */
+    public boolean isEmpty() {
+        return spans.isEmpty();
+    }
+
+    /**
+     * @return true if line is NOT empty
+     */
+    public boolean isNotEmpty() {
+        return !this.isEmpty();
+    }
+
     public String content() {
         return spans().map(AnsiSpan::content).collect(joining());
     }
@@ -48,7 +57,7 @@ public class AnsiLine implements AnsiSize {
 
     @Override
     public int width() {
-        return spans().mapToInt(AnsiSpan::width).max().orElse(0);
+        return spans().mapToInt(AnsiSpan::width).sum();
     }
 
     public static AnsiLine create(AnsiStyle.Holder parentStyleHolder, Stream<AnsiSpan> spanStream) {
@@ -77,15 +86,15 @@ public class AnsiLine implements AnsiSize {
 
     public String renderSpans() {
         StringBuilder sb = new StringBuilder();
-        renderCtx().setLineStyleBuilder(emptyBuilder());
-        spans().forEach(span -> {
-            span.style().map(renderCtx().getLineStyleBuilder()::apply);
-            sb.append(renderCtx().getLineStyleBuilder().build().renderAnsi());
+        AnsiStyle lastOpen = AnsiStyle.empty();
+        AnsiStyle lastClose = AnsiStyle.empty();
+        for (AnsiSpan span : spans) {
+            sb.append(span.styleOpen().over(lastOpen).renderAnsi());
             sb.append(span.content());
-            renderCtx().setLineStyleBuilder(emptyBuilder());
-            span.style().map(renderCtx().getLineStyleBuilder()::reset);
-        });
-        sb.append(renderCtx().getLineStyleBuilder().build().renderAnsi());
+            lastOpen = span.styleOpen();
+            lastClose = span.styleClose();
+        };
+        sb.append(lastClose.renderAnsi());
         return sb.toString();
     }
 
@@ -99,6 +108,20 @@ public class AnsiLine implements AnsiSize {
             sb.append(resetAll().renderAnsi());
         }
         return sb.toString();
+    }
+
+    /**
+     * @return sequence of ansi-styles that open each span
+     */
+    public Stream<AnsiStyle> spanStylesOpen() {
+        return spans().map(AnsiSpan::styleOpen);
+    }
+
+    /**
+     * @return dump the {@link AnsiLine} object for debug purposes
+     */
+    public String dump() {
+        return isEmpty() ? "empty-line" : spans().map(AnsiSpan::dump).collect(joining(";"));
     }
 
     public static Builder builder(AnsiStyle.Holder parentStyleHolder) {
@@ -129,19 +152,19 @@ public class AnsiLine implements AnsiSize {
         }
 
         public Builder append(Stream<AnsiSpan> spanStream) {
-            spanStream.forEach(span -> accumulate(this.spansList, span));
+            spanStream.forEach(span -> accumulate(this.spansList, span.copy(parentStyleHolder)));
             return this;
         }
 
         private List<AnsiSpan> spansList() { return spansList; }
 
         private void accumulate(List<AnsiSpan> spansList, AnsiSpan span) {
-            if (spansList.isEmpty() || !spansList.getLast().hasTheSameStyle(span)) {
+            if (spansList.isEmpty() || !spansList.getLast().hasTheSameOpenStyle(span)) {
                 spansList.add(span.copy(parentStyleHolder));
             } else {
                 AnsiStyle bothStyle = span.style().orElse(null);
                 String bothContent = spansList.getLast().content() + span.content();
-                spansList.set(spansList.size() - 1, AnsiSpan.create(bothStyle, bothContent));
+                spansList.set(spansList.size() - 1, AnsiSpan.create(parentStyleHolder, bothStyle, bothContent));
             }
         }
 

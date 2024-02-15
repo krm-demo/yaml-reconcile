@@ -1,6 +1,7 @@
 package org.krmdemo.yaml.reconcile.ansi;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -58,23 +59,20 @@ public class AnsiStyle {
         }
 
         default AnsiStyle parentStyle() {
-            Builder builder = empty().builder();
+            Builder builder = emptyBuilder();
             parentChain().flatMap(AnsiStyle::attrs).forEach(builder::accept);  // <-- think about reduce
             return builder.build();
         }
 
         default AnsiStyle styleOpen() {
-            return style()
-                .map(parentStyle().builder()::apply)
-                .map(AnsiStyle.Builder::build)
-                .orElse(empty());
+            Builder builder = emptyBuilder();
+            builder.apply(parentStyle());
+            style().map(builder::apply);
+            return builder.build();
         }
 
         default AnsiStyle styleClose() {
-            return style()
-                .map(parentStyle().builder()::reset)
-                .map(AnsiStyle.Builder::build)
-                .orElse(empty());
+            return emptyBuilder().reset(styleOpen()).build();
         }
     }
 
@@ -172,6 +170,25 @@ public class AnsiStyle {
         return dump();
     }
 
+    public AnsiStyle over(AnsiStyle styleBefore) {
+        return diff(this, styleBefore);
+    }
+
+    public static AnsiStyle diff(AnsiStyle styleAfter, AnsiStyle styleBefore) {
+        Builder diffBuilder = emptyBuilder();
+        Builder builderBefore = styleBefore.builder();
+        Builder builderAfter = styleAfter.builder();
+        styleAfter.attrs()
+            .filter(builderBefore::doesNotContain)
+            .forEach(diffBuilder::accept);
+        styleBefore.attrs()
+            .filter(builderAfter::doesNotContainFamily)
+            .filter(attr -> attr.operation() == AnsiStyleAttr.Operation.apply)
+            .flatMap(attr -> lookupResetFamily(attr.family()).stream())
+            .forEach(diffBuilder::accept);
+        return diffBuilder.build();
+    }
+
     /**
      * @return an instance of ansi-style builder from this ansi-style
      */
@@ -201,7 +218,7 @@ public class AnsiStyle {
      * @return ansi-style based on applying passed attributes to empty style
      */
     public static AnsiStyle ansiStyle(AnsiStyleAttr... styleAttrs) {
-        return emptyBuilder().acceptAll(styleAttrs).build();
+        return ArrayUtils.isEmpty(styleAttrs) ? empty() : emptyBuilder().acceptAll(styleAttrs).build();
     }
 
     /**
@@ -220,6 +237,23 @@ public class AnsiStyle {
 
         private Builder() {
             attrs().forEach(this::accept);
+        }
+
+        public boolean containsFamily(AnsiStyleAttr attr) {
+            return attr != null && attrsMap.containsKey(attr.family());
+        }
+
+        public boolean contains(AnsiStyleAttr attr) {
+            AnsiStyleAttr familyAttr = attr == null ? null : attrsMap.get(attr.family());
+            return familyAttr != null && familyAttr.equals(attr);
+        }
+
+        public boolean doesNotContainFamily(AnsiStyleAttr attr) {
+            return !this.containsFamily(attr);
+        }
+
+        public boolean doesNotContain(AnsiStyleAttr attr) {
+            return !this.contains(attr);
         }
 
         public AnsiStyle build() {

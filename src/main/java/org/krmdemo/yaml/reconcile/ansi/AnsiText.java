@@ -19,10 +19,7 @@ import static java.lang.String.format;
 import static java.lang.System.lineSeparator;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.text.StringEscapeUtils.escapeJava;
-import static org.krmdemo.yaml.reconcile.ansi.AnsiRenderCtx.renderCtx;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.empty;
-import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.emptyBuilder;
-import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.resetAll;
 
 /**
  * This class represents the multi-line text with global outer ansi-style and sequential fragments of

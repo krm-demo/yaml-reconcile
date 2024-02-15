@@ -2,6 +2,7 @@ package org.krmdemo.yaml.reconcile.ansi;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static java.lang.System.lineSeparator;
 import static java.util.stream.Collectors.joining;
@@ -68,6 +69,13 @@ public class AnsiBlock implements AnsiStyle.Holder, AnsiSize {
      */
     public String renderAnsi() {
         return lines.stream().map(AnsiLine::renderAnsi).collect(joining(lineSeparator()));
+    }
+
+    /**
+     * @return sequence of ansi-styles that open each span
+     */
+    public Stream<AnsiStyle> spanStylesOpen() {
+        return  lines.stream().flatMap(AnsiLine::spans).map(AnsiSpan::styleOpen);
     }
 
     public static Builder builder() {
@@ -191,7 +199,7 @@ public class AnsiBlock implements AnsiStyle.Holder, AnsiSize {
 
         private void addPadding(AnsiLine.Builder lineBuilder, int paddingWidth) {
             if (paddingWidth > 0) {
-                lineBuilder.append(AnsiSpan.create(style, repeat(paddingChar, paddingWidth)));
+                lineBuilder.append(AnsiSpan.create(repeat(paddingChar, paddingWidth)));
             }
         }
     }

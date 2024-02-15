@@ -11,16 +11,8 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.ansiStyle;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.empty;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.resetAll;
-import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.APPLY_BOLD;
-import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.APPLY_DIM;
-import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.APPLY_ITALIC;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.*;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.Color.*;
-import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.RESET_BOLD;
-import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.RESET_DIM;
-import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.RESET_ITALIC;
-import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.bg;
-import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.fg;
-import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.lookupByName;
 
 /**
  * Unit-test to check the functionality of {@link AnsiStyle} class
@@ -178,5 +170,33 @@ public class AnsiStyleTest {
             .build();
         assertThat(styleLookup.renderAnsi()).isEqualTo("\u001b[4;9m");
         assertThat(styleLookup.dump()).isEqualTo("ansi-style<underline,strikethrough>");
+    }
+
+    @Test
+    void testStyleOver() {
+//        System.out.println(ansiStyle(bg(255)).over(empty()));
+//        System.out.println(ansiStyle(bg(255),APPLY_BOLD).over(ansiStyle(bg(255))));
+//        System.out.println(ansiStyle(bg(255),APPLY_BOLD,fg(RED)).over(ansiStyle(bg(255),APPLY_BOLD)));
+//        System.out.println(ansiStyle(bg(255),APPLY_BOLD).over(ansiStyle(bg(255),APPLY_BOLD,fg(RED))));
+//        System.out.println(ansiStyle(bg(255),fg(RED)).over(ansiStyle(bg(255),APPLY_BOLD,fg(RED))));
+//        System.out.println(ansiStyle(bg(255)).over(ansiStyle(bg(255),APPLY_BOLD,fg(RED))));
+//        System.out.println(ansiStyle(bg(254)).over(ansiStyle(bg(255),APPLY_BOLD,fg(RED))));
+//        System.out.println(empty().over(ansiStyle(bg(255),APPLY_BOLD,fg(RED))));
+        assertThat(ansiStyle(bg(255)).over(empty()))
+            .isEqualTo(ansiStyle(bg(255)));
+        assertThat(ansiStyle(bg(255),APPLY_BOLD).over(ansiStyle(bg(255))))
+            .isEqualTo(ansiStyle(APPLY_BOLD));
+        assertThat(ansiStyle(bg(255),APPLY_BOLD,fg(RED)).over(ansiStyle(bg(255),APPLY_BOLD)))
+            .isEqualTo(ansiStyle(fg(RED)));
+        assertThat(ansiStyle(bg(255),APPLY_BOLD).over(ansiStyle(bg(255),APPLY_BOLD,fg(RED))))
+            .isEqualTo(ansiStyle(RESET_FG));
+        assertThat(ansiStyle(bg(255),fg(RED)).over(ansiStyle(bg(255),APPLY_BOLD,fg(RED))))
+            .isEqualTo(ansiStyle(RESET_BOLD));
+        assertThat(ansiStyle(bg(255)).over(ansiStyle(bg(255),APPLY_BOLD,fg(RED))))
+            .isEqualTo(ansiStyle(RESET_BOLD,RESET_FG));
+        assertThat(ansiStyle(bg(254)).over(ansiStyle(bg(255),APPLY_BOLD,fg(RED))))
+            .isEqualTo(ansiStyle(RESET_BOLD,RESET_FG,bg(254)));
+        assertThat(ansiStyle().over(ansiStyle(bg(255),APPLY_BOLD,fg(RED))))
+            .isEqualTo(ansiStyle(RESET_BOLD,RESET_FG,RESET_BG));
     }
 }
