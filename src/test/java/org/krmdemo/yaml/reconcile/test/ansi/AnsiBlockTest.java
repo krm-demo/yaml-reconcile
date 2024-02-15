@@ -2,12 +2,17 @@ package org.krmdemo.yaml.reconcile.test.ansi;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.krmdemo.yaml.reconcile.ansi.AnsiBlock;
+import org.krmdemo.yaml.reconcile.ansi.AnsiLine;
+import org.krmdemo.yaml.reconcile.ansi.AnsiStyle;
 import org.krmdemo.yaml.reconcile.ansi.AnsiText;
 
+import static java.lang.Math.max;
+import static java.lang.String.format;
 import static java.lang.System.lineSeparator;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiRenderCtx.renderCtx;
@@ -19,7 +24,11 @@ import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.Color.MAGENTA;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.Color.RED;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.bg;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.fg;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiText.ansiLine;
 
+/**
+ * Unit-test to check the functionality of {@link AnsiBlock} class
+ */
 public class AnsiBlockTest {
 
     static AnsiText ansiText = AnsiText.ansiText("""
@@ -46,15 +55,20 @@ public class AnsiBlockTest {
     }
 
     @Test
-    void testBlock() {
+    void testAnsiTextBlock() {
+
+    }
+
+    @Test
+    void testBlockLeft() {
         AnsiBlock ansiBlock = AnsiBlock.builder()
             .ansiText(ansiText)
-            //.horizontal(AnsiBlock.Horizontal.LEFT)  // <-- this is the default alignment
+            .horizontal(AnsiBlock.Horizontal.LEFT)
             .style(bg(255))
             .build();
         assertThat(ansiBlock.height()).isEqualTo(5);
         assertThat(ansiBlock.width()).isEqualTo(54);
-        System.out.println("------ ansiBlock(LEFT).renderAnsi(): -----------");
+        System.out.println("------ ansiBlock(Left).renderAnsi(): -----------");
         System.out.println(ansiBlock.renderAnsi());
         assertThat(ansiBlock.spanStylesOpen().toList()).containsExactly(
             // line #0 :
@@ -107,7 +121,7 @@ public class AnsiBlockTest {
                 ansiStyle(APPLY_BOLD,fg(MAGENTA),bg(0xFA, 0xFA, 0x00)),
             ansiStyle(bg(255))
         );
-        System.out.println("------ ansiBlock(LEFT).content(): --------------");
+        System.out.println("------ ansiBlock(Left).content(): --------------");
         System.out.println(ansiBlock.content());
         assertThat(ansiBlock.content()).isEqualTo(
             "some text with bold and red fragment at the first line" + lineSeparator() +
@@ -127,7 +141,7 @@ public class AnsiBlockTest {
             .build();
         assertThat(ansiBlock.height()).isEqualTo(5);
         assertThat(ansiBlock.width()).isEqualTo(54);
-        System.out.println("------ ansiBlock(RIGHT).renderAnsi(): -----------");
+        System.out.println("------ ansiBlock(Right).renderAnsi(): -----------");
         System.out.println(ansiBlock.renderAnsi());
         assertThat(ansiBlock.lineAt(0).spanStylesOpen().toList()).containsExactly(
             ansiStyle(bg(255)),
@@ -156,7 +170,7 @@ public class AnsiBlockTest {
                     ansiStyle(fg(MAGENTA),bg(0xFA, 0xFA, 0x00)),
                 ansiStyle(APPLY_BOLD,fg(MAGENTA),bg(0xFA, 0xFA, 0x00))
         );
-        System.out.println("------ ansiBlock(RIGHT).content(): --------------");
+        System.out.println("------ ansiBlock(Right).content(): --------------");
         System.out.println(ansiBlock.content());
         assertThat(ansiBlock.content()).isEqualTo(
             "some text with bold and red fragment at the first line" + lineSeparator() +
@@ -176,7 +190,7 @@ public class AnsiBlockTest {
             .build();
         assertThat(ansiBlock.height()).isEqualTo(5);
         assertThat(ansiBlock.width()).isEqualTo(54);
-        System.out.println("------ ansiBlock(CENTER).renderAnsi(): -----------");
+        System.out.println("------ ansiBlock(Center).renderAnsi(): -----------");
         System.out.println(ansiBlock.renderAnsi());
         assertThat(ansiBlock.spanStylesOpen().toList()).containsExactly(
             // line #0 :
@@ -204,7 +218,7 @@ public class AnsiBlockTest {
                 ansiStyle(APPLY_BOLD,fg(MAGENTA),bg(0xFA, 0xFA, 0x00)),
             ansiStyle(bg(255))
         );
-        System.out.println("------ ansiBlock(CENTER).content(): --------------");
+        System.out.println("------ ansiBlock(Center).content(): --------------");
         System.out.println(ansiBlock.content());
         assertThat(ansiBlock.content()).isEqualTo(
             "some text with bold and red fragment at the first line" + lineSeparator() +
@@ -215,18 +229,91 @@ public class AnsiBlockTest {
         );
     }
 
-    @ParameterizedTest(name = "[{index}] line[{0}]")
-    @CsvSource(delimiterString = " ::: ", value = {
-        "0 ::: some text @|bold with bold @|red and red|@ fragament|@ at the first line",
-        "1 ::: some text @|bold with bold @|red and red|@ fragament|@ at the first line",
-        "2 ::: some text @|bold with bold @|red and red|@ fragament|@ at the first line"
-    })
-    void testSubSpans(int lineNum) {
-//        AnsiText.Line line = ansiText.lines().get(lineNum);
-//        System.out.printf("------- ansiText.lines[%d].renderAnsi(): ----------------%n", lineNum);
-//        System.out.printf("|%s|%n", line.renderAnsi());
-//        System.out.printf("------- ansiText.lines[%d].content(): -------------------%n", lineNum);
-//        System.out.printf("|%s|%n", line.content());
-        //String subContent = AnsiTextUtils.subSpans(line.spans(), 0, 0);
+    @Test
+    void testBlockRightCut() {
+        int contentWidth = 30;
+        AnsiBlock ansiBlock = AnsiBlock.builder()
+            .ansiText(ansiText)
+            .contentWidth(contentWidth)
+            .horizontal(AnsiBlock.Horizontal.LEFT)
+            .leftIndentWidth(10)
+            .leftIndent(lineNum -> ansiLine(format("@|fg(#f9) line @|bold #%d|@:", lineNum)))
+            .rightIndentWidth(15)
+            .rightIndent(lineNum -> ansiLine(format("@|fg(#f9) :width(@|bold %d/%d|@)",
+                ansiText.lineWidthAt(lineNum), max(0, ansiText.lineWidthAt(lineNum) - contentWidth))))
+            .style(bg(240, 240, 255))
+            .build();
+        assertThat(ansiBlock.height()).isEqualTo(5);
+        assertThat(ansiBlock.width()).isEqualTo(55);
+        System.out.println("------ ansiBlock(RightCut).renderAnsi(): -----------");
+        System.out.println(ansiBlock.renderAnsi());
+        System.out.println("------ ansiBlock(RightCut).content(): --------------");
+        System.out.println(ansiBlock.content());
+        assertThat(ansiBlock.content() + lineSeparator()).isEqualTo("""
+              line #0:some text with bold and red fr:width(54/24) \s
+              line #1:and some blue and italic fragm:width(47/17) \s
+              line #2:and at the third line         :width(21/0)  \s
+              line #3:                              :width(0/0)   \s
+              line #4: bold -©- marker              :width(17/0)  \s
+            """);
+    }
+
+    @Test
+    void testBlockLeftCut() {
+        int contentWidth = 30;
+        AnsiBlock ansiBlock = AnsiBlock.builder()
+            .ansiText(ansiText)
+            .contentWidth(contentWidth)
+            .horizontal(AnsiBlock.Horizontal.RIGHT)
+            .leftIndentWidth(10)
+            .leftIndent(lineNum -> ansiLine(format("@|fg(#f9) line @|bold #%d|@:", lineNum)))
+            .rightIndentWidth(15)
+            .rightIndent(lineNum -> ansiLine(format("@|fg(#f9) :width(@|bold %d/%d|@)",
+                ansiText.lineWidthAt(lineNum), max(0, ansiText.lineWidthAt(lineNum) - contentWidth))))
+            .style(bg(240, 240, 255))
+            .build();
+        assertThat(ansiBlock.height()).isEqualTo(5);
+        assertThat(ansiBlock.width()).isEqualTo(55);
+        System.out.println("------ ansiBlock(LeftCut).renderAnsi(): -----------");
+        System.out.println(ansiBlock.renderAnsi());
+        System.out.println("------ ansiBlock(LeftCut).content(): --------------");
+        System.out.println(ansiBlock.content());
+        assertThat(ansiBlock.content() + lineSeparator()).isEqualTo("""
+              line #0:red fragment at the first line:width(54/24) \s
+              line #1: italic fragment at the second:width(47/17) \s
+              line #2:         and at the third line:width(21/0)  \s
+              line #3:                              :width(0/0)   \s
+              line #4:              bold -©- marker :width(17/0)  \s
+            """);
+    }
+
+    @Test
+    @Disabled("TODO: fix it")
+    void testBlockCenterCut() {
+        int contentWidth = 37;
+        AnsiBlock ansiBlock = AnsiBlock.builder()
+            .ansiText(ansiText)
+            .contentWidth(contentWidth)
+            .horizontal(AnsiBlock.Horizontal.CENTER)
+            .leftIndentWidth(10)
+            .leftIndent(lineNum -> ansiLine(format("@|fg(#f9) line @|bold #%d|@:", lineNum)))
+            .rightIndentWidth(15)
+            .rightIndent(lineNum -> ansiLine(format("@|fg(#f9) :width(@|bold %d/%d|@)",
+                ansiText.lineWidthAt(lineNum), max(0, ansiText.lineWidthAt(lineNum) - contentWidth))))
+            .style(bg(240, 240, 255))
+            .build();
+        assertThat(ansiBlock.height()).isEqualTo(5);
+        assertThat(ansiBlock.width()).isEqualTo(62);
+        System.out.println("------ ansiBlock(CenterCut).renderAnsi(): -----------");
+        System.out.println(ansiBlock.renderAnsi());
+        System.out.println("------ ansiBlock(CenterCut).content(): --------------");
+        System.out.println(ansiBlock.content());
+        assertThat(ansiBlock.content() + lineSeparator()).isEqualTo("""
+              line #0:red fragment at the first line:width(54/24) \s
+              line #1: italic fragment at the second:width(47/17) \s
+              line #2:         and at the third line:width(21/0)  \s
+              line #3:                              :width(0/0)   \s
+              line #4:              bold -©- marker :width(17/0)  \s
+            """);
     }
 }

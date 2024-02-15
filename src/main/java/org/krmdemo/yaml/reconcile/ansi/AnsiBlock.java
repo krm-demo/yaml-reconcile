@@ -159,9 +159,9 @@ public class AnsiBlock implements AnsiStyle.Holder, AnsiSize {
             List<AnsiLine> lines = new ArrayList<>(ansiText.height());
             AnsiBlock ansiBlock = new AnsiBlock(parent, style, lines, ansiText.height(), width);
             for (int i = 0; i < ansiText.height(); i++) {
-                AnsiLine left = align(ansiBlock, leftIndentWidth, Horizontal.LEFT, leftIndent.apply(i));
+                AnsiLine left = align(ansiBlock, leftIndentWidth, Horizontal.RIGHT, leftIndent.apply(i));
                 AnsiLine body = align(ansiBlock, contentWidth, horizontal, ansiText.lineAt(i));
-                AnsiLine right = align(ansiBlock, rightIndentWidth, Horizontal.RIGHT, rightIndent.apply(i));
+                AnsiLine right = align(ansiBlock, rightIndentWidth, Horizontal.LEFT, rightIndent.apply(i));
                 lines.add(AnsiLine.create(ansiBlock, left, body, right));
             }
             return ansiBlock;
@@ -186,12 +186,13 @@ public class AnsiBlock implements AnsiStyle.Holder, AnsiSize {
             }
             AnsiLine line = AnsiLine.create(ansiBlock, sourceLine.spans());
             if (padding < 0) {
+                System.out.println("align (padding < 0) " + alignHor + " : " + (-padding) + " -> " + sourceLine.width());
                 line = switch(alignHor) {
                     case Horizontal.LEFT -> line.subLine(ansiBlock, 0, targetWidth);
                     case Horizontal.CENTER -> line.subLine(ansiBlock,
                         - padding / 2,
                         targetWidth + (padding / 2));
-                    case Horizontal.RIGHT -> line.subLine(ansiBlock, -padding, targetWidth);
+                    case Horizontal.RIGHT -> line.subLine(ansiBlock, -padding, sourceLine.width());
                 };
             }
             return line;

@@ -1,5 +1,6 @@
 package org.krmdemo.yaml.reconcile.test.ansi;
 
+import org.krmdemo.yaml.reconcile.ansi.AnsiLine;
 import org.krmdemo.yaml.reconcile.ansi.AnsiText;
 
 import java.util.*;
@@ -20,8 +21,13 @@ class AnsiTestUtils {
     static String unescapeEsqSeq(String text) {
         return escapeJava(text).replaceAll("\\\\\\\\u001[bB]\\[", "\u001B[");
     }
+
     static String escapeJavaWithLS(AnsiText ansiTxt) {
         return escapeJava(ansiTxt.renderAnsi()).replaceAll("\\\\n", lineSeparator());
+    }
+
+    static String escapeJavaWithLS(AnsiLine ansiLine) {
+        return escapeJava(ansiLine.renderAnsi()).replaceAll("\\\\n", lineSeparator());
     }
 
     static Map<Integer, String> escSeqByPos(String str) {

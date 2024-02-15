@@ -3,6 +3,7 @@ package org.krmdemo.yaml.reconcile.test.ansi;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.krmdemo.yaml.reconcile.ansi.AnsiLine;
 import org.krmdemo.yaml.reconcile.ansi.AnsiStyle;
 import org.krmdemo.yaml.reconcile.ansi.AnsiText;
 

@@ -3,6 +3,7 @@ package org.krmdemo.yaml.reconcile.ansi;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.lang.String.format;
 import static java.lang.String.valueOf;
@@ -230,21 +231,45 @@ public class AnsiStyleAttr implements Comparable<AnsiStyleAttr> {
         BRIGHT_CYAN(96, 106, "^cyan"),
         BRIGHT_WHITE(97, 107, "^white");
 
-        private final AnsiStyleAttr fg;
-        private final AnsiStyleAttr bg;
+        private int fgCode;
+        private int bgCode;
+
+        private AnsiStyleAttr fg;
+        private AnsiStyleAttr bg;
 
         private final String colorName;
 
         Color(int fgCode, int bgCode, String colorName) {
+            this.fgCode = fgCode;
+            this.bgCode = bgCode;
             this.colorName = colorName;
-            this.fg = createAndRegister(Operation.apply, FOREGROUND, colorName, fgCode);
-            this.bg = createAndRegister(Operation.apply, BACKGROUND, colorName, bgCode);
         }
 
         @Override
         public String toString() {
             return super.toString() + format("{%s;%s}", fg, bg);
         }
+
+        private static AtomicBoolean registered = new AtomicBoolean(false);
+        private static void registerColors() {
+            if (registered.getAndSet(true)) {
+                return;
+            }
+            stream(Color.values()).forEach(color -> {
+                color.fg = createAndRegister(Operation.apply, FOREGROUND, color.colorName, color.fgCode);
+                color.bg = createAndRegister(Operation.apply, BACKGROUND, color.colorName, color.bgCode);
+                attrByName.put(color.colorName, color.fg);
+            });
+        }
+        static {
+            registerColors();
+        }
+    }
+
+    static {
+        // for some unknown reasons the static initializers of nested enumeration are not invoked properly
+        //         (it mostly happens when some unit-tests are executed from IDEA IntelliJ)
+        Color.registerColors();
     }
 
     public static AnsiStyleAttr bg(Color color) {
@@ -311,11 +336,5 @@ public class AnsiStyleAttr implements Comparable<AnsiStyleAttr> {
             throw new IllegalArgumentException(format(fmtErrMsg, intValue));
         }
         return format("%02X", intValue);
-    }
-
-    static {
-        stream(Color.values()).forEach(color -> {
-            attrByName.put(color.colorName, color.fg);
-        });
     }
 }

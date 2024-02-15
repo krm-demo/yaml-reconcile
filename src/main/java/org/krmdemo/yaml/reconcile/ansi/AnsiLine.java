@@ -60,6 +60,10 @@ public class AnsiLine implements AnsiSize {
         return spans().mapToInt(AnsiSpan::width).sum();
     }
 
+    public static AnsiLine create(String ansiTextFmt) {
+        return AnsiText.ansiLine(ansiTextFmt);
+    }
+
     public static AnsiLine create(AnsiStyle.Holder parentStyleHolder, Stream<AnsiSpan> spanStream) {
         return spanStream.collect(builder(parentStyleHolder));
     }
@@ -69,19 +73,28 @@ public class AnsiLine implements AnsiSize {
     }
 
     /**
-     * @param parentStyleHolder a reference of parrent holder of ansi-style
-     * @param contentPosFrom the start-position of in source line content (inclusive)
-     * @param contentPosTo the stop-position of in source line  content (inclusive)
+     * @param parentStyleHolder a reference to parent holder of ansi-style
+     * @param contentPosFrom the start-position in source line content (inclusive)
+     * @param contentPosTo the stop-position in source line content (inclusive)
      * @return a sub-line with content of source line in the range <code>[contentPosFrom;contentPosTo)</code>.
      */
     public AnsiLine subLine(AnsiStyle.Holder parentStyleHolder, int contentPosFrom, int contentPosTo) {
-        AtomicInteger contentPos = new AtomicInteger(0);
-        return spans.stream()
-            .flatMap(span -> span.subSpan(
-                contentPosFrom - contentPos.get(),
-                contentPosTo - contentPos.get()).stream())
-            .peek(span -> contentPos.getAndAdd(span.width()))
-            .collect(builder(parentStyleHolder));
+        if (contentPosFrom >= contentPosTo || contentPosTo < 0 || contentPosFrom >= width()) {
+            return empty();
+        }
+        int currentPos = 0;
+        List<AnsiSpan> subSpans = new ArrayList<>();
+        for (AnsiSpan span : spans) {
+            if (currentPos > contentPosTo) {
+                break;
+            } else if (currentPos + span.width() < contentPosFrom) {
+                currentPos += span.width();
+                continue;
+            }
+            span.subSpan(contentPosFrom - currentPos, contentPosTo - currentPos).map(subSpans::add);
+            currentPos += span.width();
+        }
+        return create(parentStyleHolder, subSpans.stream());
     }
 
     public String renderSpans() {
@@ -89,9 +102,10 @@ public class AnsiLine implements AnsiSize {
         AnsiStyle lastOpen = AnsiStyle.empty();
         AnsiStyle lastClose = AnsiStyle.empty();
         for (AnsiSpan span : spans) {
-            sb.append(span.styleOpen().over(lastOpen).renderAnsi());
+            AnsiStyle currentOpen = span.styleOpen();
+            sb.append(currentOpen.over(lastOpen).renderAnsi());
             sb.append(span.content());
-            lastOpen = span.styleOpen();
+            lastOpen = currentOpen;
             lastClose = span.styleClose();
         };
         sb.append(lastClose.renderAnsi());

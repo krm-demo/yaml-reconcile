@@ -102,6 +102,10 @@ public class AnsiText implements AnsiSize {
             AnsiLine.empty() : AnsiLine.create(null, lineSpansAt(lineNum));
     }
 
+    public AnsiLine firstLine() {
+        return lineAt(0);
+    }
+
     /**
      * @return sequence of ansi-styles used in this text
      */
@@ -166,12 +170,20 @@ public class AnsiText implements AnsiSize {
         return new AnsiText();
     }
 
-    public static AnsiText ansiText(String text) {
+    public static AnsiText ansiText(String ansiTextFmt) {
         AnsiText ansiText = new AnsiText();
-        ParseTree textTree = ansiText.parseText(text);
+        ParseTree textTree = ansiText.parseText(ansiTextFmt);
 //        log.trace("textTree:\n" + dumpParseTree(textTree));
 //        log.trace("=====================================");
         return ansiText;
+    }
+
+    public static AnsiLine ansiLine(String ansiTextFmt) {
+        AnsiText ansiText = ansiText(ansiTextFmt);
+        if (ansiText.height() != 1) {
+            log.warn("parsing ansi-line from empty or multi-line text - height is " + ansiText.height());
+        }
+        return ansiText.firstLine();
     }
 
     private ParseTree parseText(String text) {
