@@ -3,7 +3,6 @@ package org.krmdemo.yaml.reconcile.test.ansi;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.krmdemo.yaml.reconcile.ansi.AnsiBlock;
 import org.krmdemo.yaml.reconcile.ansi.AnsiLine;
 import org.krmdemo.yaml.reconcile.ansi.AnsiSpan;
 import org.krmdemo.yaml.reconcile.ansi.AnsiStyle;
@@ -12,7 +11,6 @@ import org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static java.lang.Math.max;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.IntStream.rangeClosed;

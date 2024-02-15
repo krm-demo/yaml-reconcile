@@ -106,6 +106,14 @@ public class AnsiText implements AnsiSize {
         return lineAt(0);
     }
 
+    public AnsiBlock.Builder blockBuilder() {
+        return AnsiBlock.builder().ansiText(this);
+    }
+
+    public AnsiBlock blocked() {
+        return blockBuilder().build();
+    }
+
     /**
      * @return sequence of ansi-styles used in this text
      */

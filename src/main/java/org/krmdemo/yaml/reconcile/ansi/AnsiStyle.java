@@ -2,8 +2,6 @@ package org.krmdemo.yaml.reconcile.ansi;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -45,25 +43,31 @@ public class AnsiStyle {
         }
 
         /**
-         * @return a stream of styles that should be applied (from top-parent to this one EXCLUSIVE)
+         * @return a stream of ansi-styles that should be applied (from top-parent to this one EXCLUSIVE)
          */
         default Stream<AnsiStyle> parentChain() {
             return parent().stream().flatMap(Holder::styleChain);
         }
 
         /**
-         * @return a stream of styles that should be applied (from top-parent to this one INCLUSIVE)
+         * @return a stream of ansi-styles that should be applied (from top-parent to this one INCLUSIVE)
          */
         default Stream<AnsiStyle> styleChain() {
             return Stream.concat(parentChain(), style().stream()).filter(AnsiStyle::isNotEmpty);
         }
 
+        /**
+         * @return recursive applying all parent ansi-styles
+         */
         default AnsiStyle parentStyle() {
             Builder builder = emptyBuilder();
             parentChain().flatMap(AnsiStyle::attrs).forEach(builder::accept);  // <-- think about reduce
             return builder.build();
         }
 
+        /**
+         * @return ansi-style that should start the rendering of the first ansi-span
+         */
         default AnsiStyle styleOpen() {
             Builder builder = emptyBuilder();
             builder.apply(parentStyle());
@@ -71,6 +75,9 @@ public class AnsiStyle {
             return builder.build();
         }
 
+        /**
+         * @return ansi-style that reset any open ansi-styles when rendering is finished
+         */
         default AnsiStyle styleClose() {
             return emptyBuilder().reset(styleOpen()).build();
         }

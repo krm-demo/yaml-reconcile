@@ -148,6 +148,10 @@ public class AnsiLine implements AnsiSize {
         return LINE_EMPTY;
     }
 
+    /**
+     * A builder to create an instance of immutable object {@link AnsiLine}
+     * or to reduce the stream of {@link AnsiSpan}s as a standard {@link Collector}.
+     */
     public static class Builder implements Collector<AnsiSpan, List<AnsiSpan>, AnsiLine> {
 
         private final AnsiStyle.Holder parentStyleHolder;

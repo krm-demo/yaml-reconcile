@@ -96,6 +96,10 @@ public class AnsiSpan implements AnsiStyle.Holder, AnsiSize {
             content);
     }
 
+    /**
+     * @param that an ansi-style to compare with
+     * @return <code>true</code>if the passed ansi-span has the same ansi-style to open (start rendering)
+     */
     public boolean hasTheSameOpenStyle(AnsiSpan that) {
         return this.styleOpen().equals(that.styleOpen());
     }

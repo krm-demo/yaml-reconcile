@@ -82,6 +82,9 @@ public class AnsiBlock implements AnsiStyle.Holder, AnsiSize {
         return new Builder();
     }
 
+    /**
+     * A builder to create an instance of immutable object {@link AnsiBlock}
+     */
     public static class Builder {
         private AnsiStyle.Holder parent = null;
         private AnsiStyle style = AnsiStyle.empty();
@@ -186,12 +189,9 @@ public class AnsiBlock implements AnsiStyle.Holder, AnsiSize {
             }
             AnsiLine line = AnsiLine.create(ansiBlock, sourceLine.spans());
             if (padding < 0) {
-                System.out.println("align (padding < 0) " + alignHor + " : " + (-padding) + " -> " + sourceLine.width());
                 line = switch(alignHor) {
                     case Horizontal.LEFT -> line.subLine(ansiBlock, 0, targetWidth);
-                    case Horizontal.CENTER -> line.subLine(ansiBlock,
-                        - padding / 2,
-                        targetWidth + (padding / 2));
+                    case Horizontal.CENTER -> line.subLine(ansiBlock, - (padding/2), targetWidth - (padding/2));
                     case Horizontal.RIGHT -> line.subLine(ansiBlock, -padding, sourceLine.width());
                 };
             }

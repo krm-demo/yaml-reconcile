@@ -2,13 +2,8 @@ package org.krmdemo.yaml.reconcile.test.ansi;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.krmdemo.yaml.reconcile.ansi.AnsiBlock;
-import org.krmdemo.yaml.reconcile.ansi.AnsiLine;
-import org.krmdemo.yaml.reconcile.ansi.AnsiStyle;
 import org.krmdemo.yaml.reconcile.ansi.AnsiText;
 
 import static java.lang.Math.max;
@@ -52,11 +47,6 @@ public class AnsiBlockTest {
     @AfterAll
     static void afterAll() {
         System.out.println("------------------------------------------");
-    }
-
-    @Test
-    void testAnsiTextBlock() {
-
     }
 
     @Test
@@ -172,13 +162,13 @@ public class AnsiBlockTest {
         );
         System.out.println("------ ansiBlock(Right).content(): --------------");
         System.out.println(ansiBlock.content());
-        assertThat(ansiBlock.content()).isEqualTo(
-            "some text with bold and red fragment at the first line" + lineSeparator() +
-            "       and some blue and italic fragment at the second" + lineSeparator() +
-            "                                 and at the third line" + lineSeparator() +
-            "                                                      " + lineSeparator() +
-            "                                      bold -©- marker "
-        );
+        assertThat(ansiBlock.content() + lineSeparator()).isEqualTo("""
+            some text with bold and red fragment at the first line
+                   and some blue and italic fragment at the second
+                                             and at the third line
+                                                                 \s
+                                                  bold -©- marker\s
+            """);
     }
 
     @Test
@@ -220,13 +210,13 @@ public class AnsiBlockTest {
         );
         System.out.println("------ ansiBlock(Center).content(): --------------");
         System.out.println(ansiBlock.content());
-        assertThat(ansiBlock.content()).isEqualTo(
-            "some text with bold and red fragment at the first line" + lineSeparator() +
-            "   and some blue and italic fragment at the second    " + lineSeparator() +
-            "                and at the third line                 " + lineSeparator() +
-            "                                                      " + lineSeparator() +
-            "                   bold -©- marker                    "
-        );
+        assertThat(ansiBlock.content() + lineSeparator()).isEqualTo("""
+            some text with bold and red fragment at the first line
+               and some blue and italic fragment at the second   \s
+                            and at the third line                \s
+                                                                 \s
+                               bold -©- marker                   \s
+            """);
     }
 
     @Test
@@ -288,7 +278,6 @@ public class AnsiBlockTest {
     }
 
     @Test
-    @Disabled("TODO: fix it")
     void testBlockCenterCut() {
         int contentWidth = 37;
         AnsiBlock ansiBlock = AnsiBlock.builder()
@@ -309,11 +298,56 @@ public class AnsiBlockTest {
         System.out.println("------ ansiBlock(CenterCut).content(): --------------");
         System.out.println(ansiBlock.content());
         assertThat(ansiBlock.content() + lineSeparator()).isEqualTo("""
-              line #0:red fragment at the first line:width(54/24) \s
-              line #1: italic fragment at the second:width(47/17) \s
-              line #2:         and at the third line:width(21/0)  \s
-              line #3:                              :width(0/0)   \s
-              line #4:              bold -©- marker :width(17/0)  \s
+              line #0:t with bold and red fragment at the f:width(54/17) \s
+              line #1:ome blue and italic fragment at the s:width(47/10) \s
+              line #2:        and at the third line        :width(21/0)  \s
+              line #3:                                     :width(0/0)   \s
+              line #4:           bold -©- marker           :width(17/0)  \s
             """);
+    }
+
+    @Test
+    void testAnsiTextBlocked() {
+        AnsiBlock ansiBlock = ansiText.blocked();
+        assertThat(ansiBlock.height()).isEqualTo(5);
+        assertThat(ansiBlock.width()).isEqualTo(54);
+        System.out.println("------ ansiBlock(AnsiTextBlocked).renderAnsi(): -----------");
+        System.out.println(ansiBlock.renderAnsi());
+        System.out.println("------ ansiBlock(AnsiTextBlocked).content(): --------------");
+        System.out.println(ansiBlock.content());
+        assertThat(ansiBlock.content() + lineSeparator()).isEqualTo("""
+            some text with bold and red fragment at the first line
+            and some blue and italic fragment at the second      \s
+            and at the third line                                \s
+                                                                 \s
+             bold -©- marker                                     \s
+            """);
+        assertThat(ansiBlock.lineAt(0).spanStylesOpen().toList()).containsExactly(
+            ansiStyle(),
+            ansiStyle(APPLY_BOLD),
+            ansiStyle(APPLY_BOLD,fg(RED)),
+            ansiStyle(APPLY_BOLD),
+            ansiStyle()
+        );
+        assertThat(ansiBlock.lineAt(1).spanStylesOpen().toList()).containsExactly(
+            ansiStyle(),
+            ansiStyle(fg(BLUE)),
+            ansiStyle(fg(BLUE),APPLY_ITALIC),
+            ansiStyle(fg(BLUE)),
+            ansiStyle()
+        );
+        assertThat(ansiBlock.lineAt(2).spanStylesOpen().toList()).containsExactly(
+            ansiStyle(fg(BLUE)),
+            ansiStyle()
+        );
+        assertThat(ansiBlock.lineAt(3).spanStylesOpen().toList()).containsExactly(
+            ansiStyle()
+        );
+        assertThat(ansiBlock.lineAt(4).spanStylesOpen().toList()).containsExactly(
+            ansiStyle(APPLY_BOLD,fg(MAGENTA),bg(0xFA, 0xFA, 0x00)),
+            ansiStyle(fg(MAGENTA),bg(0xFA, 0xFA, 0x00)),
+            ansiStyle(APPLY_BOLD,fg(MAGENTA),bg(0xFA, 0xFA, 0x00)),
+            ansiStyle()
+        );
     }
 }
