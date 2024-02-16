@@ -13,11 +13,7 @@ import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.ansiStyle;
  * This class represents a renderable rectangular block of screen. In enriches the wrapped {@link AnsiText}
  * with horizontal alignment and padding with left and right indentations.
  */
-public class AnsiBlock implements AnsiStyle.Holder, AnsiSize {
-
-    public enum Horizontal {
-        LEFT, CENTER, RIGHT
-    }
+public class AnsiBlock implements AnsiStyle.Holder, AnsiSize, Renderable {
 
     private final AnsiStyle.Holder parent;
     private final AnsiStyle style;
@@ -25,7 +21,7 @@ public class AnsiBlock implements AnsiStyle.Holder, AnsiSize {
     private final int width;
     private final int height;
 
-    private AnsiBlock(AnsiStyle.Holder parent, AnsiStyle style, List<AnsiLine> lines, int height, int widith) {
+    AnsiBlock(AnsiStyle.Holder parent, AnsiStyle style, List<AnsiLine> lines, int height, int widith) {
         this.parent = parent;
         this.style = style;
         this.lines = lines;
@@ -57,16 +53,12 @@ public class AnsiBlock implements AnsiStyle.Holder, AnsiSize {
         return lines.get(lineNum);
     }
 
-    /**
-     * @return content of text without any ansi-styles, but properly aligned as rectangular block
-     */
+    @Override
     public String content() {
         return lines.stream().map(AnsiLine::content).collect(joining(lineSeparator()));
     }
 
-    /**
-     * @return rendered ansi-text, which is properly decorated with ansi-sequences and aligned as rectangular block
-     */
+    @Override
     public String renderAnsi() {
         return lines.stream().map(AnsiLine::renderAnsi).collect(joining(lineSeparator()));
     }
@@ -94,7 +86,7 @@ public class AnsiBlock implements AnsiStyle.Holder, AnsiSize {
         private int rightIndentWidth = 0;
         private Function<Integer, AnsiLine> leftIndent = lineNum -> AnsiLine.empty();
         private Function<Integer, AnsiLine> rightIndent = lineNum -> AnsiLine.empty();
-        private Horizontal horizontal = Horizontal.LEFT;
+        private AlignHorizontal horizontal = AlignHorizontal.LEFT;
         private char paddingChar = ' ';
 
         protected Builder() {
@@ -146,7 +138,7 @@ public class AnsiBlock implements AnsiStyle.Holder, AnsiSize {
             return this;
         }
 
-        public Builder horizontal(Horizontal horizontal) {
+        public Builder horizontal(AlignHorizontal horizontal) {
             this.horizontal = horizontal;
             return this;
         }
@@ -162,27 +154,27 @@ public class AnsiBlock implements AnsiStyle.Holder, AnsiSize {
             List<AnsiLine> lines = new ArrayList<>(ansiText.height());
             AnsiBlock ansiBlock = new AnsiBlock(parent, style, lines, ansiText.height(), width);
             for (int i = 0; i < ansiText.height(); i++) {
-                AnsiLine left = align(ansiBlock, leftIndentWidth, Horizontal.RIGHT, leftIndent.apply(i));
+                AnsiLine left = align(ansiBlock, leftIndentWidth, AlignHorizontal.RIGHT, leftIndent.apply(i));
                 AnsiLine body = align(ansiBlock, contentWidth, horizontal, ansiText.lineAt(i));
-                AnsiLine right = align(ansiBlock, rightIndentWidth, Horizontal.LEFT, rightIndent.apply(i));
+                AnsiLine right = align(ansiBlock, rightIndentWidth, AlignHorizontal.LEFT, rightIndent.apply(i));
                 lines.add(AnsiLine.create(ansiBlock, left, body, right));
             }
             return ansiBlock;
         }
 
-        private AnsiLine align(AnsiBlock ansiBlock, int targetWidth, Horizontal alignHor, AnsiLine sourceLine) {
+        private AnsiLine align(AnsiBlock ansiBlock, int targetWidth, AlignHorizontal alignHor, AnsiLine sourceLine) {
             int padding = targetWidth - sourceLine.width();
             if (padding > 0) {
                 AnsiLine.Builder lineBuilder = AnsiLine.builder(ansiBlock);
-                if (alignHor == Horizontal.CENTER) {
+                if (alignHor == AlignHorizontal.CENTER) {
                     addPadding(lineBuilder, padding / 2);
-                } else if (alignHor == Horizontal.RIGHT) {
+                } else if (alignHor == AlignHorizontal.RIGHT) {
                     addPadding(lineBuilder, padding);
                 }
                 lineBuilder.append(sourceLine.spans());
-                if (alignHor == Horizontal.CENTER) {
+                if (alignHor == AlignHorizontal.CENTER) {
                     addPadding(lineBuilder, (padding / 2) + (padding % 2));
-                } else if (alignHor == Horizontal.LEFT) {
+                } else if (alignHor == AlignHorizontal.LEFT) {
                     addPadding(lineBuilder, padding);
                 }
                 return lineBuilder.build();
@@ -190,9 +182,9 @@ public class AnsiBlock implements AnsiStyle.Holder, AnsiSize {
             AnsiLine line = AnsiLine.create(ansiBlock, sourceLine.spans());
             if (padding < 0) {
                 line = switch(alignHor) {
-                    case Horizontal.LEFT -> line.subLine(ansiBlock, 0, targetWidth);
-                    case Horizontal.CENTER -> line.subLine(ansiBlock, - (padding/2), targetWidth - (padding/2));
-                    case Horizontal.RIGHT -> line.subLine(ansiBlock, -padding, sourceLine.width());
+                    case AlignHorizontal.LEFT -> line.subLine(ansiBlock, 0, targetWidth);
+                    case AlignHorizontal.CENTER -> line.subLine(ansiBlock, - (padding/2), targetWidth - (padding/2));
+                    case AlignHorizontal.RIGHT -> line.subLine(ansiBlock, -padding, sourceLine.width());
                 };
             }
             return line;

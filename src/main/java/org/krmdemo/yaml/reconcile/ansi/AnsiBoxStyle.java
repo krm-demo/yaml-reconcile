@@ -1,4 +1,4 @@
-package org.krmdemo.yaml.reconcile.test.ansi;
+package org.krmdemo.yaml.reconcile.ansi;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -6,66 +6,73 @@ import java.util.*;
 import java.util.function.Supplier;
 
 /**
- * Wrap the text to ansi-characters to output the rectangular block of specified border and background.
- * The idea of implementation is taken from python-library <a href="https://rich.readthedocs.io/en/stable/index.html">"Rich"</a>.
+ * An interface that represents the structure of border over single, multiple and table-like
+ * collections of {@link AnsiBox}. Predefined enumeration implements {@link AnsiBoxStyle} and
+ * the default implementation {@link #NONE} represents the absence of any borders (inner and outer).
  * <p/>
- * Implemented in a builder-pattern way, where content becomes unmodifiable after ...
+ * The idea and the list of predefined implementations are taken from python-library
+ * <a href="https://rich.readthedocs.io/en/stable/index.html">Rich</a>.
  * <p/>
- * TODO: parametrize {@link #MAX_HEIGHT} and {@link #MAX_WIDTH} somehow
  *
  * @see <a href="https://rich.readthedocs.io/en/stable/tables.html#">Rich: Tables</a> for a description
  * @see <a href="https://github.com/Textualize/rich/blob/master/rich/box.py">...rich/box.py</a> for the source code
  * @see <a href="https://github.com/Textualize/rich/blob/master/examples/table.py">...rich/examples/table.py</a> for a sample usage
  */
-public class AnsiBox {
+public interface AnsiBoxStyle {
 
-    public interface Style {
+    /**
+     * Absence of any inner and outer borders
+     */
+    AnsiBoxStyle NONE = new AnsiBoxStyle(){};
 
-        default boolean isAscii() { return true; }
+    default boolean isAscii() { return true; }
 
-        default Optional<String> top() { return Optional.empty(); }
-        default Optional<String> head() { return Optional.empty(); }
-        default Optional<String> headRow() { return Optional.empty(); }
-        default Optional<String> mid() { return Optional.empty(); }
-        default Optional<String> row() { return Optional.empty(); }
-        default Optional<String> footRow() { return Optional.empty(); }
-        default Optional<String> foot() { return Optional.empty(); }
-        default Optional<String> bottom() { return Optional.empty(); }
+    default Optional<String> top() { return Optional.empty(); }
+    default Optional<String> head() { return Optional.empty(); }
+    default Optional<String> headRow() { return Optional.empty(); }
+    default Optional<String> mid() { return Optional.empty(); }
+    default Optional<String> row() { return Optional.empty(); }
+    default Optional<String> footRow() { return Optional.empty(); }
+    default Optional<String> foot() { return Optional.empty(); }
+    default Optional<String> bottom() { return Optional.empty(); }
 
-        default String left(Supplier<Optional<String>> borderHorizontalLine) {
-            return borderHorizontalLine.get()
-                .map(str -> String.valueOf(str.charAt(0)))
-                .orElse("");
-        }
-
-        default String pad(Supplier<Optional<String>> borderHorizontalLine) {
-            return borderHorizontalLine.get()
-                .map(str -> String.valueOf(str.charAt(1)))
-                .orElse("");
-        }
-
-        default String connect(Supplier<Optional<String>> borderHorizontalLine) {
-            return borderHorizontalLine.get()
-                .map(str -> String.valueOf(str.charAt(2)))
-                .orElse("");
-        }
-
-        default String right(Supplier<Optional<String>> borderHorizontalLine) {
-            return borderHorizontalLine.get()
-                .map(str -> String.valueOf(str.charAt(3)))
-                .orElse("");
-        }
-
-        default String borderTop(int width) {
-            return left(this::top) + StringUtils.repeat(pad(this::top), width) + right(this::top);
-        }
-
-        default String borderBottom(int width) {
-            return left(this::top) + StringUtils.repeat(pad(this::top), width) + right(this::top);
-        }
+    default String left(Supplier<Optional<String>> borderHorizontalLine) {
+        return borderHorizontalLine.get()
+            .map(str -> String.valueOf(str.charAt(0)))
+            .orElse("");
     }
 
-    public enum StyleKind implements Style {
+    default String pad(Supplier<Optional<String>> borderHorizontalLine) {
+        return borderHorizontalLine.get()
+            .map(str -> String.valueOf(str.charAt(1)))
+            .orElse("");
+    }
+
+    default String connect(Supplier<Optional<String>> borderHorizontalLine) {
+        return borderHorizontalLine.get()
+            .map(str -> String.valueOf(str.charAt(2)))
+            .orElse("");
+    }
+
+    default String right(Supplier<Optional<String>> borderHorizontalLine) {
+        return borderHorizontalLine.get()
+            .map(str -> String.valueOf(str.charAt(3)))
+            .orElse("");
+    }
+
+    default String borderTop(int width) {
+        return left(this::top) + StringUtils.repeat(pad(this::top), width) + right(this::top);
+    }
+
+    default String borderBottom(int width) {
+        return left(this::top) + StringUtils.repeat(pad(this::top), width) + right(this::top);
+    }
+
+    /**
+     * Predefined implementations of {@link AnsiBoxStyle} interface.
+     */
+    enum Kind implements AnsiBoxStyle {
+
         ASCII (new String[] {
             "+--+",
             "| ||",
@@ -314,7 +321,7 @@ public class AnsiBox {
          *
          * @param boxLines characters making up box.
          */
-        StyleKind(String[] boxLines) {
+        Kind(String[] boxLines) {
             this(boxLines, false);
         }
 
@@ -332,7 +339,7 @@ public class AnsiBox {
          * @param boxLines characters making up box.
          * @param ascii <code>true</code> if this box uses ascii characters only.
          */
-        StyleKind(String[] boxLines, boolean ascii) {
+        Kind(String[] boxLines, boolean ascii) {
             if (boxLines.length != 8) {
                 throw new IllegalArgumentException("there must be exactly 8 box-lines");
             }
@@ -344,29 +351,4 @@ public class AnsiBox {
         private final boolean ascii;
     }
 
-    public enum Horizontal {
-        LEFT,
-
-        CENTER,
-
-        RIGHT
-    };
-
-    public enum Vertical {
-        TOP,
-        MIDDLE,
-        BOTTOM
-    }
-
-    public static final Style EMPTY_BORDER = new Style(){};
-
-    public static final int MAX_HEIGHT = 10_000;
-
-    public static final int MAX_WIDTH = 256;
-
-    public static final int DEFAULT_WIDTH = 24;
-
-    private Horizontal horizontal;
-
-    private Vertical vertical;
 }

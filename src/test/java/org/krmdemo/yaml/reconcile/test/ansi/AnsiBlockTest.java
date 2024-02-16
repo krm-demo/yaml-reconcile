@@ -3,6 +3,7 @@ package org.krmdemo.yaml.reconcile.test.ansi;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.krmdemo.yaml.reconcile.ansi.AlignHorizontal;
 import org.krmdemo.yaml.reconcile.ansi.AnsiBlock;
 import org.krmdemo.yaml.reconcile.ansi.AnsiText;
 
@@ -53,7 +54,7 @@ public class AnsiBlockTest {
     void testBlockLeft() {
         AnsiBlock ansiBlock = AnsiBlock.builder()
             .ansiText(ansiText)
-            .horizontal(AnsiBlock.Horizontal.LEFT)
+            .horizontal(AlignHorizontal.LEFT)
             .style(bg(255))
             .build();
         assertThat(ansiBlock.height()).isEqualTo(5);
@@ -126,7 +127,7 @@ public class AnsiBlockTest {
     void testBlockRight() {
         AnsiBlock ansiBlock = AnsiBlock.builder()
             .ansiText(ansiText)
-            .horizontal(AnsiBlock.Horizontal.RIGHT)
+            .horizontal(AlignHorizontal.RIGHT)
             .style(bg(255))
             .build();
         assertThat(ansiBlock.height()).isEqualTo(5);
@@ -175,7 +176,7 @@ public class AnsiBlockTest {
     void testBlockCenter() {
         AnsiBlock ansiBlock = AnsiBlock.builder()
             .ansiText(ansiText)
-            .horizontal(AnsiBlock.Horizontal.CENTER)
+            .horizontal(AlignHorizontal.CENTER)
             .style(bg(255))
             .build();
         assertThat(ansiBlock.height()).isEqualTo(5);
@@ -225,7 +226,7 @@ public class AnsiBlockTest {
         AnsiBlock ansiBlock = AnsiBlock.builder()
             .ansiText(ansiText)
             .contentWidth(contentWidth)
-            .horizontal(AnsiBlock.Horizontal.LEFT)
+            .horizontal(AlignHorizontal.LEFT)
             .leftIndentWidth(10)
             .leftIndent(lineNum -> ansiLine(format("@|fg(#f9) line @|bold #%d|@:", lineNum)))
             .rightIndentWidth(15)
@@ -254,7 +255,7 @@ public class AnsiBlockTest {
         AnsiBlock ansiBlock = AnsiBlock.builder()
             .ansiText(ansiText)
             .contentWidth(contentWidth)
-            .horizontal(AnsiBlock.Horizontal.RIGHT)
+            .horizontal(AlignHorizontal.RIGHT)
             .leftIndentWidth(10)
             .leftIndent(lineNum -> ansiLine(format("@|fg(#f9) line @|bold #%d|@:", lineNum)))
             .rightIndentWidth(15)
@@ -283,7 +284,7 @@ public class AnsiBlockTest {
         AnsiBlock ansiBlock = AnsiBlock.builder()
             .ansiText(ansiText)
             .contentWidth(contentWidth)
-            .horizontal(AnsiBlock.Horizontal.CENTER)
+            .horizontal(AlignHorizontal.CENTER)
             .leftIndentWidth(10)
             .leftIndent(lineNum -> ansiLine(format("@|fg(#f9) line @|bold #%d|@:", lineNum)))
             .rightIndentWidth(15)

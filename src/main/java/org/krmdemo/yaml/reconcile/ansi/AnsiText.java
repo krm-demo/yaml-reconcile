@@ -25,6 +25,10 @@ import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.empty;
  * This class represents the multi-line text with global outer ansi-style and sequential fragments of
  * {@link AnsiSpan}s, which are grouped by {@link Line})
  * <p/>
+ * The main difference with {@link AnsiBlock} is that by nature the parsing text is not rectangular,
+ * but similar to whatever multi-line string-literal can represent (lines of different width).
+ * Nevertheles
+ * <p/>
  * The class is not immutable and could also be used as a builder of its content
  * during parsing the formatted ansi-text or programmatically.
  */
