@@ -6,7 +6,7 @@ import org.krmdemo.yaml.reconcile.ansi.AnsiStyle;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.empty;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.emptyStyle;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.APPLY_BOLD;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.APPLY_UNDERLINE;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.RESET_BOLD;
@@ -80,16 +80,16 @@ public class AnsiStyleHolderTest {
         TestStyleHolder holder_2_2_2 = new TestStyleHolder(holder_2_2);
         TestStyleHolder holder_2_2_1_0 = new TestStyleHolder(holder_2_2_1);
 
-        assertThat(holder_1.style).isEqualTo(empty());
-        assertThat(holder_1_1.style).isEqualTo(empty());
-        assertThat(holder_1_2.style).isEqualTo(empty());
-        assertThat(holder_1_3.style).isEqualTo(empty());
-        assertThat(holder_2.style).isEqualTo(empty());
-        assertThat(holder_2_1.style).isEqualTo(empty());
-        assertThat(holder_2_2.style).isEqualTo(empty());
-        assertThat(holder_2_2_1.style).isEqualTo(empty());
-        assertThat(holder_2_2_2.style).isEqualTo(empty());
-        assertThat(holder_2_2_1_0.style).isEqualTo(empty());
+        assertThat(holder_1.style).isEqualTo(emptyStyle());
+        assertThat(holder_1_1.style).isEqualTo(emptyStyle());
+        assertThat(holder_1_2.style).isEqualTo(emptyStyle());
+        assertThat(holder_1_3.style).isEqualTo(emptyStyle());
+        assertThat(holder_2.style).isEqualTo(emptyStyle());
+        assertThat(holder_2_1.style).isEqualTo(emptyStyle());
+        assertThat(holder_2_2.style).isEqualTo(emptyStyle());
+        assertThat(holder_2_2_1.style).isEqualTo(emptyStyle());
+        assertThat(holder_2_2_2.style).isEqualTo(emptyStyle());
+        assertThat(holder_2_2_1_0.style).isEqualTo(emptyStyle());
 
 //        System.out.printf(format("holder_1       = %s (parent is %s)%n", holder_1, holder_1.parent));
 //        System.out.printf(format("holder_1_1     = %s (parent is %s)%n", holder_1_1, holder_1_1.parent));
@@ -173,12 +173,12 @@ public class AnsiStyleHolderTest {
 
         TestStyleHolder(TestStyleHolder parent) {
             this.parent = parent;
-            this.style = initStyleNull ? null : empty();
+            this.style = initStyleNull ? null : emptyStyle();
         }
 
         TestStyleHolder(TestStyleHolder parent, int fg256, int bg256) {
             this.parent = parent;
-            this.style = empty().builder()
+            this.style = emptyStyle().builder()
                 .accept(fg(fg256))
                 .accept(bg(bg256))
                 .build();
@@ -186,7 +186,7 @@ public class AnsiStyleHolderTest {
 
         TestStyleHolder(TestStyleHolder parent, boolean bold, boolean underline) {
             this.parent = parent;
-            this.style = empty().builder()
+            this.style = emptyStyle().builder()
                 .accept(bold ? APPLY_BOLD : RESET_BOLD)
                 .accept(underline ? APPLY_UNDERLINE : RESET_UNDERLINE)
                 .build();

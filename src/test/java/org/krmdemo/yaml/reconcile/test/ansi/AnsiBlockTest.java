@@ -2,7 +2,10 @@ package org.krmdemo.yaml.reconcile.test.ansi;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.krmdemo.yaml.reconcile.ansi.AlignHorizontal;
 import org.krmdemo.yaml.reconcile.ansi.AnsiBlock;
 import org.krmdemo.yaml.reconcile.ansi.AnsiText;
@@ -25,6 +28,7 @@ import static org.krmdemo.yaml.reconcile.ansi.AnsiText.ansiLine;
 /**
  * Unit-test to check the functionality of {@link AnsiBlock} class
  */
+@TestMethodOrder(MethodOrderer.DisplayName.class)
 public class AnsiBlockTest {
 
     static AnsiText ansiText = AnsiText.ansiText("""
@@ -51,6 +55,7 @@ public class AnsiBlockTest {
     }
 
     @Test
+    @DisplayName("horizontal alignment to the left (no cut)")
     void testBlockLeft() {
         AnsiBlock ansiBlock = AnsiBlock.builder()
             .ansiText(ansiText)
@@ -124,6 +129,7 @@ public class AnsiBlockTest {
     }
 
     @Test
+    @DisplayName("horizontal alignment to the right (no cut)")
     void testBlockRight() {
         AnsiBlock ansiBlock = AnsiBlock.builder()
             .ansiText(ansiText)
@@ -173,6 +179,7 @@ public class AnsiBlockTest {
     }
 
     @Test
+    @DisplayName("horizontal alignment to the center (no cut)")
     void testBlockCenter() {
         AnsiBlock ansiBlock = AnsiBlock.builder()
             .ansiText(ansiText)
@@ -221,6 +228,7 @@ public class AnsiBlockTest {
     }
 
     @Test
+    @DisplayName("cut the right part with left alignment")
     void testBlockRightCut() {
         int contentWidth = 30;
         AnsiBlock ansiBlock = AnsiBlock.builder()
@@ -250,6 +258,7 @@ public class AnsiBlockTest {
     }
 
     @Test
+    @DisplayName("cut the left part with right alignment")
     void testBlockLeftCut() {
         int contentWidth = 30;
         AnsiBlock ansiBlock = AnsiBlock.builder()
@@ -279,6 +288,7 @@ public class AnsiBlockTest {
     }
 
     @Test
+    @DisplayName("cut the center part with center alignment")
     void testBlockCenterCut() {
         int contentWidth = 37;
         AnsiBlock ansiBlock = AnsiBlock.builder()
@@ -308,6 +318,7 @@ public class AnsiBlockTest {
     }
 
     @Test
+    @DisplayName("ansi-block from ansi-text with default alignment and no cut")
     void testAnsiTextBlocked() {
         AnsiBlock ansiBlock = ansiText.blocked();
         assertThat(ansiBlock.height()).isEqualTo(5);

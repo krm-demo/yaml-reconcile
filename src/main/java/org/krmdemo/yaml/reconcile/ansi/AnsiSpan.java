@@ -6,7 +6,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.empty;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.emptyStyle;
 
 /**
  * Immutable class that represents a continues fragment of text within the same line and the same ansi-style,
@@ -91,7 +91,7 @@ public class AnsiSpan implements AnsiStyle.Holder, AnsiSize {
         return format("ansi-span(%d)<%s|%s|%s>\"%s\"",
             content.length(),
             styleOpen().attrsNamesStr(),
-            style().orElse(empty()).attrsNamesStr(),
+            style().orElse(emptyStyle()).attrsNamesStr(),
             styleClose().attrsNamesStr(),
             content);
     }

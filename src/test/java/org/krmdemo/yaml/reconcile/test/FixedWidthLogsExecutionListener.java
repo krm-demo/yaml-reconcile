@@ -5,16 +5,11 @@ import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.engine.reporting.ReportEntry;
 import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestIdentifier;
-import org.slf4j.Marker;
 
-import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.lang.System.identityHashCode;
-import static java.lang.System.lineSeparator;
 
 @Slf4j
 public class FixedWidthLogsExecutionListener implements TestExecutionListener {

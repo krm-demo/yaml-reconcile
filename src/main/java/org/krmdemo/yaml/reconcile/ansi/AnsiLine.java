@@ -1,7 +1,6 @@
 package org.krmdemo.yaml.reconcile.ansi;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
@@ -21,6 +20,41 @@ import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.resetAll;
  * that represent the line of text at ansi-terminal (without trailing line-separator).
  */
 public class AnsiLine implements AnsiSize {
+
+    /**
+     * An interface for continues sequence of {@link AnsiLine}
+     */
+    public interface Provider {
+
+        /**
+         * @return the number of lines in multi-line area of rendering
+         */
+        default int linesCount() {
+            return 0;
+        }
+
+        /**
+         * @return the maximum width of line in multi-line area
+         */
+        default int maxWidth() {
+            return 0;
+        }
+
+        /**
+         * @param lineNum zero-based index of line in multi-line area
+         * @return the instance of {@link AnsiLine} that correspond to line with "lineNum" index
+         */
+        default AnsiLine lineAt(int lineNum) {
+            return emptyLine();
+        }
+
+        /**
+         * @return the first line (default delegating to {@link #lineAt(int)})
+         */
+        default AnsiLine firstLine() {
+            return lineAt(0);
+        }
+    }
 
     private final List<AnsiSpan> spans;
 
@@ -80,7 +114,7 @@ public class AnsiLine implements AnsiSize {
      */
     public AnsiLine subLine(AnsiStyle.Holder parentStyleHolder, int contentPosFrom, int contentPosTo) {
         if (contentPosFrom >= contentPosTo || contentPosTo < 0 || contentPosFrom >= width()) {
-            return empty();
+            return emptyLine();
         }
         int currentPos = 0;
         List<AnsiSpan> subSpans = new ArrayList<>();
@@ -99,8 +133,8 @@ public class AnsiLine implements AnsiSize {
 
     public String renderSpans() {
         StringBuilder sb = new StringBuilder();
-        AnsiStyle lastOpen = AnsiStyle.empty();
-        AnsiStyle lastClose = AnsiStyle.empty();
+        AnsiStyle lastOpen = AnsiStyle.emptyStyle();
+        AnsiStyle lastClose = AnsiStyle.emptyStyle();
         for (AnsiSpan span : spans) {
             AnsiStyle currentOpen = span.styleOpen();
             sb.append(currentOpen.over(lastOpen).renderAnsi());
@@ -144,8 +178,14 @@ public class AnsiLine implements AnsiSize {
 
     private static final AnsiLine LINE_EMPTY = new AnsiLine(emptyList());
 
-    public static AnsiLine empty() {
+    public static AnsiLine emptyLine() {
         return LINE_EMPTY;
+    }
+
+    private static final AnsiLine.Provider BLOCK_EMPTY = new AnsiLine.Provider(){};
+
+    public static AnsiLine.Provider emptyBlock() {
+        return BLOCK_EMPTY;
     }
 
     /**
@@ -162,7 +202,7 @@ public class AnsiLine implements AnsiSize {
         }
 
         public AnsiLine build() {
-            return new AnsiLine(spansList);
+            return finish(this.spansList);
         }
 
         public Builder append(AnsiSpan... spans) {
@@ -192,7 +232,7 @@ public class AnsiLine implements AnsiSize {
         }
 
         private AnsiLine finish(List<AnsiSpan> spansList) {
-            return spansList.isEmpty() ? empty() : new AnsiLine(spansList);
+            return spansList.isEmpty() ? emptyLine() : new AnsiLine(spansList);
         }
 
         @Override

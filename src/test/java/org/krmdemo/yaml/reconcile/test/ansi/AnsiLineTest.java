@@ -52,9 +52,9 @@ public class AnsiLineTest {
 
     @Test
     void testSubLineEmpty() {
-        assertThat(ansiLineRanges.subLine(null, -100, -200)).isEqualTo(AnsiLine.empty());
-        assertThat(ansiLineRanges.subLine(null, 200, 300)).isEqualTo(AnsiLine.empty());
-        assertThat(ansiLineRanges.subLine(null, 100, -200)).isEqualTo(AnsiLine.empty());
+        assertThat(ansiLineRanges.subLine(null, -100, -200)).isEqualTo(AnsiLine.emptyLine());
+        assertThat(ansiLineRanges.subLine(null, 200, 300)).isEqualTo(AnsiLine.emptyLine());
+        assertThat(ansiLineRanges.subLine(null, 100, -200)).isEqualTo(AnsiLine.emptyLine());
 
         int width = ansiLineRanges.width();
         assertThat(ansiLineRanges.subLine(null, width-1, width).width()).isEqualTo(1);

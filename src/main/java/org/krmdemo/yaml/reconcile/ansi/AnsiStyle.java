@@ -209,7 +209,7 @@ public class AnsiStyle {
     /**
      * @return an instance of empty style
      */
-    public static AnsiStyle empty() {
+    public static AnsiStyle emptyStyle() {
         return STYLE_EMPTY;
     }
 
@@ -225,14 +225,14 @@ public class AnsiStyle {
      * @return ansi-style based on applying passed attributes to empty style
      */
     public static AnsiStyle ansiStyle(AnsiStyleAttr... styleAttrs) {
-        return ArrayUtils.isEmpty(styleAttrs) ? empty() : emptyBuilder().acceptAll(styleAttrs).build();
+        return ArrayUtils.isEmpty(styleAttrs) ? emptyStyle() : emptyBuilder().acceptAll(styleAttrs).build();
     }
 
     /**
      * @return a new instance of {@link AnsiStyle.Builder} from empty style
      */
     public static Builder emptyBuilder() {
-        return empty().builder();
+        return emptyStyle().builder();
     }
 
     /**
@@ -264,7 +264,7 @@ public class AnsiStyle {
         }
 
         public AnsiStyle build() {
-            return attrsMap.isEmpty() ? empty() : new AnsiStyle(attrsMap.values().stream());
+            return attrsMap.isEmpty() ? emptyStyle() : new AnsiStyle(attrsMap.values().stream());
         }
 
         public Builder accept(AnsiStyleAttr styleAttr) {

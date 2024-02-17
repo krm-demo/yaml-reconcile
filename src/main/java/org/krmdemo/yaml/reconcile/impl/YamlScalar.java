@@ -1,8 +1,6 @@
 package org.krmdemo.yaml.reconcile.impl;
 
 import lombok.NonNull;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.StringEscapeUtils;
 import org.krmdemo.yaml.reconcile.YamlNode;
 import org.snakeyaml.engine.v2.api.RepresentToNode;
 import org.snakeyaml.engine.v2.common.ScalarStyle;

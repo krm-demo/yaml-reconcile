@@ -19,7 +19,7 @@ import static java.lang.String.format;
 import static java.lang.System.lineSeparator;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.text.StringEscapeUtils.escapeJava;
-import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.empty;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.emptyStyle;
 
 /**
  * This class represents the multi-line text with global outer ansi-style and sequential fragments of
@@ -33,7 +33,7 @@ import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.empty;
  * during parsing the formatted ansi-text or programmatically.
  */
 @Slf4j
-public class AnsiText implements AnsiSize {
+public class AnsiText implements AnsiLine.Provider, Renderable {
 
     /**
      * A mutable parsing-line of multi-line {@link AnsiText} (without trailing line-separator),
@@ -80,17 +80,22 @@ public class AnsiText implements AnsiSize {
 
     private final List<Line> lines = new ArrayList<>();
 
-    private AnsiStyle.Builder styleBuilder = empty().builder();
+    private AnsiStyle.Builder styleBuilder = emptyStyle().builder();
     private final LinkedList<AnsiStyle> styleStack = new LinkedList<>();
 
     @Override
-    public int height() {
+    public int linesCount() {
         return lines.size();
     }
 
     @Override
-    public int width() {
+    public int maxWidth() {
         return lines.stream().mapToInt(Line::width).max().orElse(0);
+    }
+
+    public AnsiLine lineAt(int lineNum) {
+        return lineNum < 0 || lineNum >= lines.size() ?
+            AnsiLine.emptyLine() : AnsiLine.create(null, lineSpansAt(lineNum));
     }
 
     public Stream<AnsiSpan> lineSpansAt(int lineNum) {
@@ -99,15 +104,6 @@ public class AnsiText implements AnsiSize {
 
     public int lineWidthAt(int lineNum) {
         return lineNum < 0 || lineNum >= lines.size() ? 0 : lines.get(lineNum).width();
-    }
-
-    public AnsiLine lineAt(int lineNum) {
-        return lineNum < 0 || lineNum >= lines.size() ?
-            AnsiLine.empty() : AnsiLine.create(null, lineSpansAt(lineNum));
-    }
-
-    public AnsiLine firstLine() {
-        return lineAt(0);
     }
 
     public AnsiBlock.Builder blockBuilder() {
@@ -192,8 +188,8 @@ public class AnsiText implements AnsiSize {
 
     public static AnsiLine ansiLine(String ansiTextFmt) {
         AnsiText ansiText = ansiText(ansiTextFmt);
-        if (ansiText.height() != 1) {
-            log.warn("parsing ansi-line from empty or multi-line text - height is " + ansiText.height());
+        if (ansiText.linesCount() != 1) {
+            log.warn("parsing ansi-line from empty or multi-line text - lines count is " + ansiText.linesCount());
         }
         return ansiText.firstLine();
     }
@@ -212,6 +208,7 @@ public class AnsiText implements AnsiSize {
      * Listen to lines of spans
      */
     private class TextListener extends AnsiTextParserBaseListener {
+
         @Override
         public void enterText(AnsiTextParser.TextContext ctx) {
             log.trace("|-> Text (lines of spans)");

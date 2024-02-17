@@ -9,7 +9,7 @@ import org.krmdemo.yaml.reconcile.ansi.AnsiStyle;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.ansiStyle;
-import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.empty;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.emptyStyle;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.resetAll;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.*;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyleAttr.Color.*;
@@ -23,8 +23,8 @@ public class AnsiStyleTest {
     @Test
     @DisplayName("AnsiStyle.empty()")
     void testStyleEmpty() {
-        assertThat(empty().renderAnsi()).isEmpty();
-        assertThat(empty().dump()).isEqualTo("ansi-style-empty");
+        assertThat(emptyStyle().renderAnsi()).isEmpty();
+        assertThat(emptyStyle().dump()).isEqualTo("ansi-style-empty");
     }
 
     @Test
@@ -152,7 +152,7 @@ public class AnsiStyleTest {
     @Test
     @DisplayName("AnsiStyle.builder()..build()")
     void testStyleBuilder() {
-        AnsiStyle styleFromBuilder = empty().builder()
+        AnsiStyle styleFromBuilder = emptyStyle().builder()
             .accept(APPLY_BOLD)
             .accept(bg(123))
             .accept(fg(45))
@@ -164,7 +164,7 @@ public class AnsiStyleTest {
         AnsiStyle styleDirect = ansiStyle(APPLY_BOLD, bg(123), fg(45), RESET_ITALIC);
         assertThat(styleDirect).isEqualTo(styleFromBuilder);
 
-        AnsiStyle styleLookup = empty().builder()
+        AnsiStyle styleLookup = emptyStyle().builder()
             .acceptByName("underline")
             .acceptByName("strikethrough")
             .build();
@@ -182,7 +182,7 @@ public class AnsiStyleTest {
 //        System.out.println(ansiStyle(bg(255)).over(ansiStyle(bg(255),APPLY_BOLD,fg(RED))));
 //        System.out.println(ansiStyle(bg(254)).over(ansiStyle(bg(255),APPLY_BOLD,fg(RED))));
 //        System.out.println(empty().over(ansiStyle(bg(255),APPLY_BOLD,fg(RED))));
-        assertThat(ansiStyle(bg(255)).over(empty()))
+        assertThat(ansiStyle(bg(255)).over(emptyStyle()))
             .isEqualTo(ansiStyle(bg(255)));
         assertThat(ansiStyle(bg(255),APPLY_BOLD).over(ansiStyle(bg(255))))
             .isEqualTo(ansiStyle(APPLY_BOLD));

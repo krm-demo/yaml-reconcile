@@ -7,13 +7,16 @@ import java.util.stream.Stream;
 import static java.lang.System.lineSeparator;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.repeat;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiLine.emptyBlock;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiLine.emptyLine;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.ansiStyle;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.emptyStyle;
 
 /**
  * This class represents a renderable rectangular block of screen. In enriches the wrapped {@link AnsiText}
  * with horizontal alignment and padding with left and right indentations.
  */
-public class AnsiBlock implements AnsiStyle.Holder, AnsiSize, Renderable {
+public class AnsiBlock implements AnsiStyle.Holder, AnsiSize, AnsiLine.Provider, Renderable {
 
     private final AnsiStyle.Holder parent;
     private final AnsiStyle style;
@@ -49,6 +52,16 @@ public class AnsiBlock implements AnsiStyle.Holder, AnsiSize, Renderable {
         return width;
     }
 
+    @Override
+    public int linesCount() {
+        return height();
+    }
+
+    @Override
+    public int maxWidth() {
+        return width();
+    }
+
     public AnsiLine lineAt(int lineNum) {
         return lines.get(lineNum);
     }
@@ -79,13 +92,13 @@ public class AnsiBlock implements AnsiStyle.Holder, AnsiSize, Renderable {
      */
     public static class Builder {
         private AnsiStyle.Holder parent = null;
-        private AnsiStyle style = AnsiStyle.empty();
-        private AnsiText ansiText = AnsiText.ansiText();
+        private AnsiStyle style = emptyStyle();
+        private AnsiLine.Provider ansiLines = emptyBlock();
         private Integer contentWidth = null;
         private int leftIndentWidth = 0;
         private int rightIndentWidth = 0;
-        private Function<Integer, AnsiLine> leftIndent = lineNum -> AnsiLine.empty();
-        private Function<Integer, AnsiLine> rightIndent = lineNum -> AnsiLine.empty();
+        private Function<Integer, AnsiLine> leftIndent = lineNum -> emptyLine();
+        private Function<Integer, AnsiLine> rightIndent = lineNum -> emptyLine();
         private AlignHorizontal horizontal = AlignHorizontal.LEFT;
         private char paddingChar = ' ';
 
@@ -109,7 +122,15 @@ public class AnsiBlock implements AnsiStyle.Holder, AnsiSize, Renderable {
         }
 
         public Builder ansiText(AnsiText ansiText) {
-            this.ansiText = ansiText;
+            return ansiLines(ansiText);
+        }
+
+        public Builder ansiBlock(AnsiBlock ansiBlock) {
+            return ansiLines(ansiBlock);
+        }
+
+        public Builder ansiLines(AnsiLine.Provider ansiLines) {
+            this.ansiLines = ansiLines;
             return this;
         }
 
@@ -149,13 +170,13 @@ public class AnsiBlock implements AnsiStyle.Holder, AnsiSize, Renderable {
         }
 
         public AnsiBlock build() {
-            int contentWidth = this.contentWidth != null ? this.contentWidth : ansiText.width();
+            int contentWidth = this.contentWidth != null ? this.contentWidth : ansiLines.maxWidth();
             int width = contentWidth + this.leftIndentWidth + this.rightIndentWidth;
-            List<AnsiLine> lines = new ArrayList<>(ansiText.height());
-            AnsiBlock ansiBlock = new AnsiBlock(parent, style, lines, ansiText.height(), width);
-            for (int i = 0; i < ansiText.height(); i++) {
+            List<AnsiLine> lines = new ArrayList<>(ansiLines.linesCount());
+            AnsiBlock ansiBlock = new AnsiBlock(parent, style, lines, ansiLines.linesCount(), width);
+            for (int i = 0; i < ansiLines.linesCount(); i++) {
                 AnsiLine left = align(ansiBlock, leftIndentWidth, AlignHorizontal.RIGHT, leftIndent.apply(i));
-                AnsiLine body = align(ansiBlock, contentWidth, horizontal, ansiText.lineAt(i));
+                AnsiLine body = align(ansiBlock, contentWidth, horizontal, ansiLines.lineAt(i));
                 AnsiLine right = align(ansiBlock, rightIndentWidth, AlignHorizontal.LEFT, rightIndent.apply(i));
                 lines.add(AnsiLine.create(ansiBlock, left, body, right));
             }
