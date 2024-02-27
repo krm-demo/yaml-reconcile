@@ -57,7 +57,7 @@ public class AnsiBlockTest {
     @Test
     @DisplayName("horizontal alignment to the left (no cut)")
     void testBlockLeft() {
-        AnsiBlock ansiBlock = AnsiBlock.builder()
+        AnsiBlock ansiBlock = AnsiBlock.indentBuilder()
             .ansiText(ansiText)
             .horizontal(AlignHorizontal.LEFT)
             .style(bg(255))
@@ -131,7 +131,7 @@ public class AnsiBlockTest {
     @Test
     @DisplayName("horizontal alignment to the right (no cut)")
     void testBlockRight() {
-        AnsiBlock ansiBlock = AnsiBlock.builder()
+        AnsiBlock ansiBlock = AnsiBlock.indentBuilder()
             .ansiText(ansiText)
             .horizontal(AlignHorizontal.RIGHT)
             .style(bg(255))
@@ -181,7 +181,7 @@ public class AnsiBlockTest {
     @Test
     @DisplayName("horizontal alignment to the center (no cut)")
     void testBlockCenter() {
-        AnsiBlock ansiBlock = AnsiBlock.builder()
+        AnsiBlock ansiBlock = AnsiBlock.indentBuilder()
             .ansiText(ansiText)
             .horizontal(AlignHorizontal.CENTER)
             .style(bg(255))
@@ -231,7 +231,7 @@ public class AnsiBlockTest {
     @DisplayName("cut the right part with left alignment")
     void testBlockRightCut() {
         int contentWidth = 30;
-        AnsiBlock ansiBlock = AnsiBlock.builder()
+        AnsiBlock ansiBlock = AnsiBlock.indentBuilder()
             .ansiText(ansiText)
             .contentWidth(contentWidth)
             .horizontal(AlignHorizontal.LEFT)
@@ -261,7 +261,7 @@ public class AnsiBlockTest {
     @DisplayName("cut the left part with right alignment")
     void testBlockLeftCut() {
         int contentWidth = 30;
-        AnsiBlock ansiBlock = AnsiBlock.builder()
+        AnsiBlock ansiBlock = AnsiBlock.indentBuilder()
             .ansiText(ansiText)
             .contentWidth(contentWidth)
             .horizontal(AlignHorizontal.RIGHT)
@@ -291,7 +291,7 @@ public class AnsiBlockTest {
     @DisplayName("cut the center part with center alignment")
     void testBlockCenterCut() {
         int contentWidth = 37;
-        AnsiBlock ansiBlock = AnsiBlock.builder()
+        AnsiBlock ansiBlock = AnsiBlock.indentBuilder()
             .ansiText(ansiText)
             .contentWidth(contentWidth)
             .horizontal(AlignHorizontal.CENTER)

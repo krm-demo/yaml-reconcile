@@ -106,8 +106,8 @@ public class AnsiText implements AnsiLine.Provider, Renderable {
         return lineNum < 0 || lineNum >= lines.size() ? 0 : lines.get(lineNum).width();
     }
 
-    public AnsiBlock.Builder blockBuilder() {
-        return AnsiBlock.builder().ansiText(this);
+    public AnsiBlock.IndentBuilder blockBuilder() {
+        return AnsiBlock.indentBuilder().ansiText(this);
     }
 
     public AnsiBlock blocked() {

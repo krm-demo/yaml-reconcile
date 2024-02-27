@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 
 /**
  * An interface that represents the structure of border over single, multiple and table-like
- * collections of {@link AnsiBox}. Predefined enumeration implements {@link AnsiBoxStyle} and
+ * collections of {@link Layout}. Predefined enumeration implements {@link AnsiBorder} and
  * the default implementation {@link #NONE} represents the absence of any borders (inner and outer).
  * <p/>
  * The idea and the list of predefined implementations are taken from python-library
@@ -18,12 +18,14 @@ import java.util.function.Supplier;
  * @see <a href="https://github.com/Textualize/rich/blob/master/rich/box.py">...rich/box.py</a> for the source code
  * @see <a href="https://github.com/Textualize/rich/blob/master/examples/table.py">...rich/examples/table.py</a> for a sample usage
  */
-public interface AnsiBoxStyle {
+public interface AnsiBorder {
 
     /**
      * Absence of any inner and outer borders
      */
-    AnsiBoxStyle NONE = new AnsiBoxStyle(){};
+    AnsiBorder NONE = new AnsiBorder(){};
+
+    default int borderWidth() { return 0; }
 
     default boolean isAscii() { return true; }
 
@@ -68,10 +70,18 @@ public interface AnsiBoxStyle {
         return left(this::top) + StringUtils.repeat(pad(this::top), width) + right(this::top);
     }
 
+    default String midLeft() {
+        return left(this::mid);
+    }
+
+    default String midRight() {
+        return right(this::mid);
+    }
+
     /**
-     * Predefined implementations of {@link AnsiBoxStyle} interface.
+     * Predefined implementations of {@link AnsiBorder} interface.
      */
-    enum Kind implements AnsiBoxStyle {
+    enum Kind implements AnsiBorder {
 
         ASCII (new String[] {
             "+--+",
@@ -303,6 +313,9 @@ public interface AnsiBoxStyle {
             "█  █",  //  ....
             "▀▄▄▀",  // "█▄▄█"
         };
+
+        @Override
+        public int borderWidth() { return 1; }
 
         @Override
         public boolean isAscii() { return this.ascii; }

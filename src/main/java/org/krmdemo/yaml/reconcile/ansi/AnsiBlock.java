@@ -4,10 +4,12 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import static java.lang.String.format;
 import static java.lang.System.lineSeparator;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.repeat;
-import static org.krmdemo.yaml.reconcile.ansi.AnsiLine.emptyBlock;
+import static org.krmdemo.yaml.reconcile.ansi.AnsiLine.blankLine;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiLine.emptyLine;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.ansiStyle;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.emptyStyle;
@@ -20,16 +22,14 @@ public class AnsiBlock implements AnsiStyle.Holder, AnsiSize, AnsiLine.Provider,
 
     private final AnsiStyle.Holder parent;
     private final AnsiStyle style;
-    private final List<AnsiLine> lines;
     private final int width;
-    private final int height;
+    private final List<AnsiLine> lines;
 
-    AnsiBlock(AnsiStyle.Holder parent, AnsiStyle style, List<AnsiLine> lines, int height, int widith) {
+    AnsiBlock(AnsiStyle.Holder parent, AnsiStyle style, int width, List<AnsiLine> lines) {
         this.parent = parent;
         this.style = style;
         this.lines = lines;
-        this.height = height;
-        this.width = widith;
+        this.width = width;
     }
 
     @Override
@@ -44,7 +44,7 @@ public class AnsiBlock implements AnsiStyle.Holder, AnsiSize, AnsiLine.Provider,
 
     @Override
     public int height() {
-        return height;
+        return lines.size();
     }
 
     @Override
@@ -80,17 +80,35 @@ public class AnsiBlock implements AnsiStyle.Holder, AnsiSize, AnsiLine.Provider,
      * @return sequence of ansi-styles that open each span
      */
     public Stream<AnsiStyle> spanStylesOpen() {
-        return  lines.stream().flatMap(AnsiLine::spans).map(AnsiSpan::styleOpen);
+        return lines.stream().flatMap(AnsiLine::spans).map(AnsiSpan::styleOpen);
     }
 
-    public static Builder builder() {
-        return new Builder();
+    public AnsiBlock withParent(AnsiStyle.Holder parent) {
+        return new AnsiBlock(parent, this.style, this.width, this.lines);
+    }
+
+    private static final AnsiBlock BLOCK_EMPTY = new AnsiBlock(null, null, 0, emptyList());
+
+    public static AnsiBlock emptyBlock() {
+        return BLOCK_EMPTY;
+    }
+
+    public static AnsiBlock blankBlock(AnsiStyle.Holder parent, int height, int width, char paddingChar) {
+        if (height <= 0 || width <= 0) {
+            return emptyBlock();
+        }
+        List<AnsiLine> blankLines = Collections.nCopies(height, blankLine(parent, width, paddingChar));
+        return new AnsiBlock(parent, null, width, blankLines);
+    }
+
+    public static IndentBuilder indentBuilder() {
+        return new IndentBuilder();
     }
 
     /**
      * A builder to create an instance of immutable object {@link AnsiBlock}
      */
-    public static class Builder {
+    public static class IndentBuilder implements AnsiSize {
         private AnsiStyle.Holder parent = null;
         private AnsiStyle style = emptyStyle();
         private AnsiLine.Provider ansiLines = emptyBlock();
@@ -101,79 +119,91 @@ public class AnsiBlock implements AnsiStyle.Holder, AnsiSize, AnsiLine.Provider,
         private Function<Integer, AnsiLine> rightIndent = lineNum -> emptyLine();
         private AlignHorizontal horizontal = AlignHorizontal.LEFT;
         private char paddingChar = ' ';
+        private List<AnsiLine> linesAbove = new ArrayList<>();
+        private List<AnsiLine> linesBelow = new ArrayList<>();
 
-        protected Builder() {
+        protected IndentBuilder() {
             // force to use "AnsiBlock.builder()" to instantiate this builder
         }
 
-        public Builder parent(AnsiStyle.Holder parent) {
+        public IndentBuilder parent(AnsiStyle.Holder parent) {
             this.parent = parent;
             return this;
         }
 
-        public Builder style(AnsiStyle style) {
+        public IndentBuilder style(AnsiStyle style) {
             this.style = style;
             return this;
         }
 
-        public Builder style(AnsiStyleAttr... styleAttrs) {
+        public IndentBuilder style(AnsiStyleAttr... styleAttrs) {
             this.style = ansiStyle(styleAttrs);
             return this;
         }
 
-        public Builder ansiText(AnsiText ansiText) {
+        public IndentBuilder ansiText(AnsiText ansiText) {
             return ansiLines(ansiText);
         }
 
-        public Builder ansiBlock(AnsiBlock ansiBlock) {
+        public IndentBuilder ansiBlock(AnsiBlock ansiBlock) {
             return ansiLines(ansiBlock);
         }
 
-        public Builder ansiLines(AnsiLine.Provider ansiLines) {
+        public IndentBuilder ansiLines(AnsiLine.Provider ansiLines) {
             this.ansiLines = ansiLines;
             return this;
         }
 
-        public Builder contentWidth(Integer contentWidth) {
+        public IndentBuilder contentWidth(Integer contentWidth) {
             this.contentWidth = contentWidth;
             return this;
         }
 
-        public Builder leftIndentWidth(int leftIndentWidth) {
+        public IndentBuilder leftIndentWidth(int leftIndentWidth) {
             this.leftIndentWidth = leftIndentWidth;
             return this;
         }
 
-        public Builder rightIndentWidth(int rightIndentWidth) {
+        public IndentBuilder rightIndentWidth(int rightIndentWidth) {
             this.rightIndentWidth = rightIndentWidth;
             return this;
         }
 
-        public Builder leftIndent(Function<Integer, AnsiLine> leftIndent) {
+        public IndentBuilder leftIndent(Function<Integer, AnsiLine> leftIndent) {
             this.leftIndent = leftIndent;
             return this;
         }
 
-        public Builder rightIndent(Function<Integer, AnsiLine> rightIndent) {
+        public IndentBuilder rightIndent(Function<Integer, AnsiLine> rightIndent) {
             this.rightIndent = rightIndent;
             return this;
         }
 
-        public Builder horizontal(AlignHorizontal horizontal) {
+        public IndentBuilder horizontal(AlignHorizontal horizontal) {
             this.horizontal = horizontal;
             return this;
         }
 
-        public Builder paddingChar(char paddingChar) {
+        public IndentBuilder paddingChar(char paddingChar) {
             this.paddingChar = paddingChar;
             return this;
         }
 
+        @Override
+        public int height() {
+            return ansiLines.linesCount();
+        }
+
+        @Override
+        public int width() {
+            int contentWidth = this.contentWidth != null ? this.contentWidth : ansiLines.maxWidth();
+            return contentWidth + this.leftIndentWidth + this.rightIndentWidth;
+        }
+
         public AnsiBlock build() {
             int contentWidth = this.contentWidth != null ? this.contentWidth : ansiLines.maxWidth();
-            int width = contentWidth + this.leftIndentWidth + this.rightIndentWidth;
             List<AnsiLine> lines = new ArrayList<>(ansiLines.linesCount());
-            AnsiBlock ansiBlock = new AnsiBlock(parent, style, lines, ansiLines.linesCount(), width);
+            AnsiBlock ansiBlock = new AnsiBlock(parent, style, width(), lines);
             for (int i = 0; i < ansiLines.linesCount(); i++) {
                 AnsiLine left = align(ansiBlock, leftIndentWidth, AlignHorizontal.RIGHT, leftIndent.apply(i));
                 AnsiLine body = align(ansiBlock, contentWidth, horizontal, ansiLines.lineAt(i));
@@ -214,6 +244,15 @@ public class AnsiBlock implements AnsiStyle.Holder, AnsiSize, AnsiLine.Provider,
         private void addPadding(AnsiLine.Builder lineBuilder, int paddingWidth) {
             if (paddingWidth > 0) {
                 lineBuilder.append(AnsiSpan.create(repeat(paddingChar, paddingWidth)));
+            }
+        }
+
+        private void checkLinesWidth(int expectedWidth, List<AnsiLine> linesToCheck, String errMsgFmt) {
+            for (int i = 0; i < linesToCheck.size(); i++) {
+                int actualWidth = linesToCheck.get(i).width();
+                if (actualWidth != expectedWidth) {
+                    throw new IllegalArgumentException(format(errMsgFmt, i, expectedWidth, actualWidth));
+                }
             }
         }
     }

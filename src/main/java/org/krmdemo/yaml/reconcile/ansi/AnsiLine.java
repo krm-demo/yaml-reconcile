@@ -11,7 +11,9 @@ import java.util.stream.Stream;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang3.StringUtils.repeat;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiRenderCtx.renderCtx;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.resetAll;
 
@@ -26,6 +28,10 @@ public class AnsiLine implements AnsiSize {
      */
     public interface Provider {
 
+        default Stream<AnsiLine> lines() {
+            return Stream.empty();
+        }
+
         /**
          * @return the number of lines in multi-line area of rendering
          */
@@ -37,7 +43,7 @@ public class AnsiLine implements AnsiSize {
          * @return the maximum width of line in multi-line area
          */
         default int maxWidth() {
-            return 0;
+            return lines().mapToInt(AnsiLine::width).max().orElse(0);
         }
 
         /**
@@ -182,10 +188,16 @@ public class AnsiLine implements AnsiSize {
         return LINE_EMPTY;
     }
 
-    private static final AnsiLine.Provider BLOCK_EMPTY = new AnsiLine.Provider(){};
+    public static AnsiLine blankLine(AnsiStyle.Holder parent, int width) {
+        return blankLine(parent, width, ' ');
+    }
 
-    public static AnsiLine.Provider emptyBlock() {
-        return BLOCK_EMPTY;
+    public static AnsiLine blankLine(AnsiStyle.Holder parent, int width, char paddingChar) {
+        if (width <= 0) {
+            return emptyLine();
+        }
+        AnsiSpan blankSpan = AnsiSpan.create(parent, null, repeat(paddingChar, width));
+        return new AnsiLine(singletonList(blankSpan));
     }
 
     /**

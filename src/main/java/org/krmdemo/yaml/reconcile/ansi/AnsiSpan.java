@@ -1,11 +1,12 @@
 package org.krmdemo.yaml.reconcile.ansi;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.*;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.String.format;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.emptyStyle;
 
 /**
@@ -19,7 +20,7 @@ public class AnsiSpan implements AnsiStyle.Holder, AnsiSize {
     private final String content;
 
     private AnsiSpan(AnsiStyle.Holder parent, AnsiStyle style, String content) {
-        if (isEmpty(content)) {
+        if (StringUtils.isEmpty(content)) {
             throw new IllegalArgumentException("the content of ansi-span must not be null or empty");
         }
         this.parent = parent;
@@ -72,7 +73,7 @@ public class AnsiSpan implements AnsiStyle.Holder, AnsiSize {
 
     public Optional<AnsiSpan> subSpan(int beginIndex, int endIndex) {
         endIndex = min(this.content.length(), endIndex);
-        beginIndex = max(0, beginIndex);
+        beginIndex = Math.max(0, beginIndex);
         return endIndex <= beginIndex ? Optional.empty()
             : Optional.of(create(this.parent, this.style, this.content.substring(beginIndex, endIndex)));
     }
