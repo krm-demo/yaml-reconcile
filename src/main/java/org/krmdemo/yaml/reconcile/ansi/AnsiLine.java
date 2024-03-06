@@ -13,6 +13,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.IntStream.range;
 import static org.apache.commons.lang3.StringUtils.repeat;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiRenderCtx.renderCtx;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.resetAll;
@@ -28,30 +29,27 @@ public class AnsiLine implements AnsiSize {
      */
     public interface Provider {
 
-        default Stream<AnsiLine> lines() {
-            return Stream.empty();
-        }
-
         /**
          * @return the number of lines in multi-line area of rendering
          */
-        default int linesCount() {
-            return 0;
-        }
-
-        /**
-         * @return the maximum width of line in multi-line area
-         */
-        default int maxWidth() {
-            return lines().mapToInt(AnsiLine::width).max().orElse(0);
-        }
+        int linesCount();
 
         /**
          * @param lineNum zero-based index of line in multi-line area
          * @return the instance of {@link AnsiLine} that correspond to line with "lineNum" index
          */
-        default AnsiLine lineAt(int lineNum) {
-            return emptyLine();
+        AnsiLine lineAt(int lineNum);
+
+        /**
+         * @return the maximum width of line in multi-line area with variable width (like {@link AnsiText}
+         */
+        int maxWidth();
+
+        /**
+         * @return a stream of {@link AnsiLine} according to {@link #linesCount()} and {@link #lineAt(int)}
+         */
+        default Stream<AnsiLine> lines() {
+            return range(0, linesCount()).mapToObj(this::lineAt);
         }
 
         /**
@@ -109,7 +107,15 @@ public class AnsiLine implements AnsiSize {
     }
 
     public static AnsiLine create(AnsiStyle.Holder parentStyleHolder, AnsiLine... lines) {
-        return stream(lines).flatMap(AnsiLine::spans).collect(builder(parentStyleHolder));
+        return create(parentStyleHolder, stream(lines).flatMap(AnsiLine::spans));
+    }
+
+    public static AnsiLine create(Stream<AnsiSpan> spanStream) {
+        return new AnsiLine(spanStream.toList());
+    }
+
+    public static AnsiLine create(AnsiLine... lines) {
+        return create(stream(lines).flatMap(AnsiLine::spans));
     }
 
     /**
@@ -176,6 +182,11 @@ public class AnsiLine implements AnsiSize {
      */
     public String dump() {
         return isEmpty() ? "empty-line" : spans().map(AnsiSpan::dump).collect(joining(";"));
+    }
+
+    @Override
+    public String toString() {
+        return dump();
     }
 
     public static Builder builder(AnsiStyle.Holder parentStyleHolder) {

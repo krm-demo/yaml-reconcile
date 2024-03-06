@@ -29,11 +29,12 @@ public interface AnsiSize {
         return !isNotEmpty();
     }
 
+    @SafeVarargs
     static <Sz extends AnsiSize> int max(ToIntFunction<Sz> sizePart, Sz... arr) {
         return max(sizePart, stream(arr));
     }
 
-    static <Sz extends AnsiSize> int max(ToIntFunction<Sz> sizePart, List<Sz> list) {
+    static <Sz extends AnsiSize> int max(ToIntFunction<Sz> sizePart, Collection<Sz> list) {
         return max(sizePart, list.stream());
     }
 
@@ -41,11 +42,12 @@ public interface AnsiSize {
         return sizableStream.mapToInt(sizePart).max().orElse(0);
     }
 
+    @SafeVarargs
     static <Sz extends AnsiSize> int sum(ToIntFunction<Sz> sizePart, Sz... arr) {
         return sum(sizePart, stream(arr));
     }
 
-    static <Sz extends AnsiSize> int sum(ToIntFunction<Sz> sizePart, List<Sz> list) {
+    static <Sz extends AnsiSize> int sum(ToIntFunction<Sz> sizePart, Collection<Sz> list) {
         return sum(sizePart, list.stream());
     }
 

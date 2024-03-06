@@ -30,27 +30,18 @@ public interface Renderable {
     /**
      * @return rendered content without any ansi-styles, but with the same layout
      */
-    default String content() {
-        throw new UnsupportedOperationException(
-            "content could not be extracted for class " + getClass().getSimpleName()
-        );
-    }
+    String content();
 
     /**
      * @return rendered content, which is properly decorated with ansi-sequences
      */
-    default String renderAnsi() {
-        throw new UnsupportedOperationException(
-            "ansi-rendering is not supported for class " + getClass().getSimpleName()
-        );
-    }
+    String renderAnsi();
 
     default String renderAnsiFormat() {
         throw new UnsupportedOperationException(
             "ansi-rendering is not supported for class " + getClass().getSimpleName()
         );
     }
-
 
     default String dump() {
         throw new UnsupportedOperationException(
