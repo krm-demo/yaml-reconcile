@@ -114,4 +114,62 @@ public class LayoutTest {
             .allMatch(layout -> layout.height() == 6)
             .allMatch(layout -> layout.width() == 10);
     }
+
+    @Test
+    void testVertOneTwoHorzThree() {
+        Layout layoutTopCenter =
+            horizontal(AlignVertical.TOP,
+                vertical(AlignHorizontal.CENTER, blockOne, blockTwo),
+                blockThree);
+        System.out.println(layoutTopCenter + " - AlignVertical.TOP, AlignHorizontal.CENTER:");
+        System.out.println(layoutTopCenter.renderAnsi());
+        assertThat(layoutTopCenter.content()).isEqualTo("""
+             one line   and \s
+               two     three\s
+              lines    lines \
+            """);
+        Layout layoutTopRight =
+            horizontal(AlignVertical.TOP,
+                vertical(AlignHorizontal.RIGHT, blockOne, blockTwo),
+                blockThree);
+        System.out.println(layoutTopRight + " - AlignVertical.TOP, AlignHorizontal.RIGHT:");
+        System.out.println(layoutTopRight.renderAnsi());
+        assertThat(layoutTopRight.content()).isEqualTo("""
+             one line   and \s
+                 two   three\s
+                lines  lines \
+            """);
+        assertThat(asList(layoutTopCenter, layoutTopRight))
+            .allMatch(layout -> layout.height() == 3)
+            .allMatch(layout -> layout.width() == 17);
+    }
+
+    @Test
+    void testVertOneHorzTwoThree() {
+        Layout layoutCenterTop =
+            vertical(AlignHorizontal.CENTER, blockOne,
+                horizontal(AlignVertical.TOP, blockTwo, blockThree));
+        System.out.println(layoutCenterTop + " - AlignVertical.TOP, AlignHorizontal.CENTER:");
+        System.out.println(layoutCenterTop.renderAnsi());
+        assertThat(layoutCenterTop.content()).isEqualTo("""
+               one line  \s
+              two    and \s
+             lines  three\s
+                    lines \
+            """);
+        Layout layoutRightBottom =
+            vertical(AlignHorizontal.RIGHT, blockOne,
+                horizontal(AlignVertical.BOTTOM, blockTwo, blockThree));
+        System.out.println(layoutRightBottom + " - AlignVertical.BOTTOM, AlignHorizontal.RIGHT:");
+        System.out.println(layoutRightBottom.renderAnsi());
+        assertThat(layoutRightBottom.content()).isEqualTo("""
+                 one line\s
+                     and \s
+              two   three\s
+             lines  lines \
+            """);
+        assertThat(asList(layoutCenterTop, layoutRightBottom))
+            .allMatch(layout -> layout.height() == 4)
+            .allMatch(layout -> layout.width() == 14);
+    }
 }
