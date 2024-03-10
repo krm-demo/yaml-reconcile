@@ -46,9 +46,7 @@ public class LayoutTest {
 
     @Test
     void testHorz() {
-        Layout layoutHorzTop = horizontal(AlignVertical.TOP, asList(
-            blockOne, blockTwo, blockThree
-        ));
+        Layout layoutHorzTop = horizontal(AlignVertical.TOP, blockOne, blockTwo, blockThree);
         System.out.println(layoutHorzTop + " - AlignVertical.TOP:");
         System.out.println(layoutHorzTop.renderAnsi());
         assertThat(layoutHorzTop.content()).isEqualTo("""
@@ -56,9 +54,7 @@ public class LayoutTest {
                        lines  three\s
                               lines \
             """);
-        Layout layoutHorzMiddle = horizontal(AlignVertical.MIDDLE, asList(
-            blockOne, blockTwo, blockThree
-        ));
+        Layout layoutHorzMiddle = horizontal(AlignVertical.MIDDLE, blockOne, blockTwo, blockThree);
         System.out.println(layoutHorzMiddle + " - AlignVertical.MIDDLE:");
         System.out.println(layoutHorzMiddle.renderAnsi());
         assertThat(layoutHorzMiddle.content()).isEqualTo("""
@@ -66,9 +62,7 @@ public class LayoutTest {
              one line   two   three\s
                        lines  lines \
             """);
-        Layout layoutHorzBottom = horizontal(AlignVertical.BOTTOM, asList(
-            blockOne, blockTwo, blockThree
-        ));
+        Layout layoutHorzBottom = horizontal(AlignVertical.BOTTOM, blockOne, blockTwo, blockThree);
         System.out.println(layoutHorzBottom + " - AlignVertical.BOTTOM:");
         System.out.println(layoutHorzBottom.renderAnsi());
         assertThat(layoutHorzBottom.content()).isEqualTo("""
@@ -83,9 +77,7 @@ public class LayoutTest {
 
     @Test
     void testVert() {
-        Layout layoutVertLeft = vertical(AlignHorizontal.LEFT, asList(
-            blockOne, blockTwo, blockThree
-        ));
+        Layout layoutVertLeft = vertical(AlignHorizontal.LEFT, blockOne, blockTwo, blockThree);
         System.out.println(layoutVertLeft + " - AlignHorizontal.LEFT:");
         System.out.println(layoutVertLeft.renderAnsi());
         assertThat(layoutVertLeft.content()).isEqualTo("""
@@ -96,9 +88,7 @@ public class LayoutTest {
              three   \s
              lines    \
             """);
-        Layout layoutVertCenter = vertical(AlignHorizontal.CENTER, asList(
-            blockOne, blockTwo, blockThree
-        ));
+        Layout layoutVertCenter = vertical(AlignHorizontal.CENTER, blockOne, blockTwo, blockThree);
         System.out.println(layoutVertCenter + " - AlignHorizontal.CENTER:");
         System.out.println(layoutVertCenter.renderAnsi());
         assertThat(layoutVertCenter.content()).isEqualTo("""
@@ -109,9 +99,7 @@ public class LayoutTest {
               three  \s
               lines   \
             """);
-        Layout layoutVertRight = vertical(AlignHorizontal.RIGHT, asList(
-            blockOne, blockTwo, blockThree
-        ));
+        Layout layoutVertRight = vertical(AlignHorizontal.RIGHT, blockOne, blockTwo, blockThree);
         System.out.println(layoutVertRight + " - AlignHorizontal.RIGHT:");
         System.out.println(layoutVertRight.renderAnsi());
         assertThat(layoutVertRight.content()).isEqualTo("""

@@ -5,6 +5,7 @@ import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.lang.System.lineSeparator;
+import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -257,6 +258,10 @@ public abstract class Layout implements AnsiSize, AnsiStyle.Holder, AnsiLine.Pro
         }
     }
 
+    public static Layout horizontal(AlignVertical alignment, Layout... childrenArr) {
+        return horizontal(alignment, asList(childrenArr));
+    }
+
     public static Layout horizontal(AlignVertical alignment, List<Layout> children) {
         int maxHeight = max(AnsiSize::height, children);
         if (maxHeight <= 0) {
@@ -267,6 +272,10 @@ public abstract class Layout implements AnsiSize, AnsiStyle.Holder, AnsiLine.Pro
                 .filter(AnsiSize::isNotEmpty)
                 .map(child -> alignVert(child, alignment, maxHeight))
         );
+    }
+
+    public static Layout vertical(AlignHorizontal alignment, Layout... childrenArr) {
+        return vertical(alignment, asList(childrenArr));
     }
 
     public static Layout vertical(AlignHorizontal alignment, List<Layout> children) {
