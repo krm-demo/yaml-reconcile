@@ -55,6 +55,38 @@ public abstract class Layout implements AnsiSize, AnsiStyle.Holder, AnsiLine.Pro
         return width();
     }
 
+    public Layout topFrame() {
+        if (width() <= 0 || border().borderWidth() == 0) {
+            return emptyLayout();
+        } else {
+            return border().topBar(width());
+        }
+    }
+
+    public Layout bottomFrame() {
+        if (width() <= 0 || border().borderWidth() == 0) {
+            return emptyLayout();
+        } else {
+            return border().bottomBar(width());
+        }
+    }
+
+    public Layout leftFrame() {
+        if (height() <= 0 || border().borderWidth() == 0) {
+            return emptyLayout();
+        } else {
+            return border().leftBar(height());
+        }
+    }
+
+    public Layout rightFrame() {
+        if (height() <= 0 || border().borderWidth() == 0) {
+            return emptyLayout();
+        } else {
+            return border().rightBar(height());
+        }
+    }
+
     @Override
     public AnsiLine lineAt(int lineNum) {
         List<AnsiLine> row = layoutRowAt(lineNum);
@@ -90,11 +122,11 @@ public abstract class Layout implements AnsiSize, AnsiStyle.Holder, AnsiLine.Pro
         return LAYOUT_EMPTY;
     }
 
-    private static class Blank extends Layout {
+    static class Blank extends Layout {
         protected int height;
         protected int width;
 
-        private Blank(int height, int width) {
+        Blank(int height, int width) {
             if (height <= 0 || width <= 0) {
                 throw new IllegalArgumentException("Attempt to create an empty blank layout");
             }
@@ -102,7 +134,7 @@ public abstract class Layout implements AnsiSize, AnsiStyle.Holder, AnsiLine.Pro
             this.width = width;
         }
 
-        private Blank() {
+        Blank() {
             this.height = 0;
             this.width = 0;
         }
@@ -138,6 +170,16 @@ public abstract class Layout implements AnsiSize, AnsiStyle.Holder, AnsiLine.Pro
             return LAYOUT_EMPTY;
         } else {
             return new Blank(height, width);
+        }
+    }
+
+    public static Layout horizontalBar(int width, char paddingChar) {
+        if (width <= 0) {
+            return LAYOUT_EMPTY;
+        } else {
+            Layout bar = new Blank(1, width);
+            bar.paddingChar = paddingChar;
+            return bar;
         }
     }
 
@@ -294,12 +336,5 @@ public abstract class Layout implements AnsiSize, AnsiStyle.Holder, AnsiLine.Pro
                 .map(child -> alignHorz(child, alignment, maxWidth))
                 .toList()
         );
-    }
-
-    private static class TopFrame extends Horizontal {
-        @Override
-        public String dump() {
-            return format("TopFrame(width:%d; %d elements)", width(), childCount());
-        }
     }
 }

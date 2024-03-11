@@ -2,8 +2,6 @@ package org.krmdemo.yaml.reconcile.ansi;
 
 import java.util.*;
 
-import static java.util.Collections.emptySet;
-
 public class CrossSubst {
 
     enum CrossEnd {
