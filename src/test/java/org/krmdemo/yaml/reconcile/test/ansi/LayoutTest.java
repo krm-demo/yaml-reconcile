@@ -24,17 +24,17 @@ public class LayoutTest {
     final AnsiBlock blockOne = txtOne.blockBuilder()
         .horizontal(AlignHorizontal.CENTER)
         .leftIndentWidth(1).rightIndentWidth(1)
-        .style(bg(240, 240, 255))
+        .style(bg(245, 245, 255))
         .build();
     final AnsiBlock blockTwo = txtTwo.blockBuilder()
         .horizontal(AlignHorizontal.CENTER)
         .leftIndentWidth(1).rightIndentWidth(1)
-        .style(bg(240, 255, 240))
+        .style(bg(245, 255, 245))
         .build();
     final AnsiBlock blockThree = txtThree.blockBuilder()
         .horizontal(AlignHorizontal.CENTER)
         .leftIndentWidth(1).rightIndentWidth(1)
-        .style(bg(255, 240, 240))
+        .style(bg(255, 245, 245))
         .build();
 
     @BeforeEach

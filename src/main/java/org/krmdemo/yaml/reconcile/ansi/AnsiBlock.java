@@ -27,6 +27,11 @@ public class AnsiBlock extends Layout {
     }
 
     @Override
+    public int childCount() {
+        return 1;
+    }
+
+    @Override
     public int height() {
         return lines.size();
     }

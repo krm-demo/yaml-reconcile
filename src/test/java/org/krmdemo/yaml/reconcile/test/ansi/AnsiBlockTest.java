@@ -323,9 +323,9 @@ public class AnsiBlockTest {
         AnsiBlock ansiBlock = ansiText.blocked();
         assertThat(ansiBlock.height()).isEqualTo(5);
         assertThat(ansiBlock.width()).isEqualTo(54);
-        System.out.println("------ ansiBlock(AnsiTextBlocked).renderAnsi(): -----------");
+        System.out.println("------ ansiText.blocked().renderAnsi(): -----------");
         System.out.println(ansiBlock.renderAnsi());
-        System.out.println("------ ansiBlock(AnsiTextBlocked).content(): --------------");
+        System.out.println("------ ansiText.blocked().content(): --------------");
         System.out.println(ansiBlock.content());
         assertThat(ansiBlock.content() + lineSeparator()).isEqualTo("""
             some text with bold and red fragment at the first line

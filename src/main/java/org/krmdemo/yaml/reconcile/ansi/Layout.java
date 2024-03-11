@@ -1,17 +1,14 @@
 package org.krmdemo.yaml.reconcile.ansi;
 
 import java.util.*;
-import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.lang.System.lineSeparator;
 import static java.util.Arrays.asList;
-import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiSize.max;
-import static org.krmdemo.yaml.reconcile.ansi.AnsiSize.sum;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.emptyStyle;
 
 /**
@@ -23,7 +20,7 @@ public abstract class Layout implements AnsiSize, AnsiStyle.Holder, AnsiLine.Pro
     protected Layout parent = null;
     protected AnsiStyle style = emptyStyle();
 
-    protected AnsiBorder boxStyle = AnsiBorder.NONE;
+    protected AnsiBorder border = AnsiBorder.NONE;
     protected char paddingChar = ' ';
 
     @Override
@@ -36,8 +33,8 @@ public abstract class Layout implements AnsiSize, AnsiStyle.Holder, AnsiLine.Pro
         return Optional.of(style);
     }
 
-    public AnsiBorder boxStyle() {
-        return boxStyle;
+    public AnsiBorder border() {
+        return border;
     }
 
     public char paddingChar() {
@@ -45,6 +42,8 @@ public abstract class Layout implements AnsiSize, AnsiStyle.Holder, AnsiLine.Pro
     }
 
     public abstract List<AnsiLine> layoutRowAt(int rowNum);
+
+    public abstract int childCount();
 
     @Override
     public int linesCount() {
@@ -80,6 +79,7 @@ public abstract class Layout implements AnsiSize, AnsiStyle.Holder, AnsiLine.Pro
     }
 
     private final static Layout LAYOUT_EMPTY = new Layout() {
+        @Override public int childCount() { return 0; }
         @Override public int height() { return 0; }
         @Override public int width() { return 0; }
         @Override public List<AnsiLine> layoutRowAt(int rowNum) { return emptyList(); }
@@ -91,8 +91,8 @@ public abstract class Layout implements AnsiSize, AnsiStyle.Holder, AnsiLine.Pro
     }
 
     private static class Blank extends Layout {
-        private final int height;
-        private final int width;
+        protected int height;
+        protected int width;
 
         private Blank(int height, int width) {
             if (height <= 0 || width <= 0) {
@@ -100,6 +100,16 @@ public abstract class Layout implements AnsiSize, AnsiStyle.Holder, AnsiLine.Pro
             }
             this.height = height;
             this.width = width;
+        }
+
+        private Blank() {
+            this.height = 0;
+            this.width = 0;
+        }
+
+        @Override
+        public int childCount() {
+            return 1;
         }
 
         @Override
@@ -131,36 +141,34 @@ public abstract class Layout implements AnsiSize, AnsiStyle.Holder, AnsiLine.Pro
         }
     }
 
-    private static class Horizontal extends Layout {
-        private final List<Layout> children;
+    private static class Horizontal extends Blank {
+        private final SortedMap<Integer,Layout> childrenByPos = new TreeMap<>();
 
         private Horizontal(Layout... childrenArr) {
-            this(stream(childrenArr));
+            this(asList(childrenArr));
         }
 
         private Horizontal(List<Layout> children) {
-            this(children.stream());
-        }
-
-        private Horizontal(Stream<Layout> childrenStream) {
-            this.children = childrenStream.peek(child -> child.parent = this).toList();
-            if (this.children.isEmpty()) {
+            if (children.isEmpty()) {
                 throw new IllegalArgumentException("Attempt to create an empty horizontal layout");
             }
-        }
-
-        public int height() {
-            return max(AnsiSize::height, children);
-        }
-
-        public int width() {
-            // TODO: internal border width is not counted yet
-            return sum(AnsiSize::width, children);
+            int maxHeight = 0;
+            int totalWidth = 0;
+            for (Layout child : children) {
+                totalWidth += child.width();
+                if (child.height() > maxHeight) {
+                    maxHeight = child.height();
+                }
+                this.childrenByPos.put(totalWidth - 1, child);
+                child.parent = this;
+            }
+            this.height = maxHeight;
+            this.width = totalWidth;  // <-- TODO: internal border width is not counted yet
         }
 
         @Override
         public List<AnsiLine> layoutRowAt(int rowNum) {
-            return children.stream()
+            return childrenByPos.values().stream()
                 .map(child -> child.layoutRowAt(rowNum))
                 .flatMap(List::stream)
                 .toList();
@@ -168,44 +176,40 @@ public abstract class Layout implements AnsiSize, AnsiStyle.Holder, AnsiLine.Pro
 
         @Override
         public String dump() {
-            return format("Horizontal(height:%d;width:%d; %d children)", height(), width(), children.size());
+            return format("Horizontal(height:%d;width:%d; %d children)", height(), width(), childCount());
         }
     }
 
-    private static class Vertical extends Layout {
-        private final List<Layout> children;
+    private static class Vertical extends Blank {
         private final SortedMap<Integer,Layout> childrenByRow = new TreeMap<>();
 
         private Vertical(Layout... childrenArr) {
-            this(stream(childrenArr));
+            this(asList(childrenArr));
         }
 
         private Vertical(List<Layout> children) {
-            this(children.stream());
-        }
-
-        private Vertical(Stream<Layout> childrenStream) {
-            this.children = childrenStream.peek(child -> child.parent = this).toList();
-            if (this.children.isEmpty()) {
+            if (children.isEmpty()) {
                 throw new IllegalArgumentException("Attempt to create an empty vertical layout");
             }
-            int rowNum = 0;
-            for (Layout child : this.children) {
-                rowNum += child.height();
-                this.childrenByRow.put(rowNum - 1, child);
+            int totalHeight = 0;
+            int maxWidth = 0;
+            for (Layout child : children) {
+                totalHeight += child.height();
+                if (child.width() > maxWidth) {
+                    maxWidth = child.width();
+                }
+                this.childrenByRow.put(totalHeight - 1, child);
+                child.parent = this;
             }
-        }
-
-        public int height() {
-            // TODO: internal border height is not counted yet
-            return sum(AnsiSize::height, children);
-        }
-
-        public int width() {
-            return max(AnsiSize::width, children);
+            this.height = totalHeight; // <-- TODO: internal border height is not counted yet
+            this.width = maxWidth;
         }
 
         @Override
+        public int childCount() {
+            return childrenByRow.size();
+        }
+
         public List<AnsiLine> layoutRowAt(int rowNum) {
             if (rowNum < 0 || rowNum >= height()) {
                 return emptyList();
@@ -222,7 +226,7 @@ public abstract class Layout implements AnsiSize, AnsiStyle.Holder, AnsiLine.Pro
 
         @Override
         public String dump() {
-            return format("Vertical(height:%d;width:%d; %d children)", height(), width(), children.size());
+            return format("Vertical(height:%d;width:%d; %d children)", height(), width(), childCount());
         }
     }
 
@@ -271,6 +275,7 @@ public abstract class Layout implements AnsiSize, AnsiStyle.Holder, AnsiLine.Pro
             children.stream()
                 .filter(AnsiSize::isNotEmpty)
                 .map(child -> alignVert(child, alignment, maxHeight))
+                .toList()
         );
     }
 
@@ -287,6 +292,14 @@ public abstract class Layout implements AnsiSize, AnsiStyle.Holder, AnsiLine.Pro
             children.stream()
                 .filter(AnsiSize::isNotEmpty)
                 .map(child -> alignHorz(child, alignment, maxWidth))
+                .toList()
         );
+    }
+
+    private static class TopFrame extends Horizontal {
+        @Override
+        public String dump() {
+            return format("TopFrame(width:%d; %d elements)", width(), childCount());
+        }
     }
 }
