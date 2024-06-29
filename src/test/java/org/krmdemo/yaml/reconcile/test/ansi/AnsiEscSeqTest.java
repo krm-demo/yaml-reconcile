@@ -40,6 +40,24 @@ public class AnsiEscSeqTest {
         System.out.println(ansiText(">>> @|blue;la-la-la||@|@ <<<").renderAnsi());
         System.out.println(ansiText(">>> @|magenta;@||la-la-la||@|@ <<<").renderAnsi());
 
+        System.out.println("-------- ansi-styles (double vertical line character): ---------");
+        System.out.println(ansiText(">>>  true @@|@@| false = true  <<<").renderAnsi());
+        System.out.println(ansiText(">>> false || true  = true  <<<").renderAnsi());
+        System.out.println(ansiText(">>> false @@|| false = false <<<").renderAnsi());
+
+        System.out.println("-------- ansi-styles (single vertical line character): ---------");
+        System.out.println(ansiText(">>> 123 @@| 456 = 507 <<<").renderAnsi());
+        System.out.println(ansiText(">>> 234 | 567 = 767 <<<").renderAnsi());
+        System.out.println(ansiText(">>>   0 \u007C 345 = 345 <<<").renderAnsi());  // <-- be careful with that!
+
+        System.out.println("-------- ansi-styles (vertical lines with some color): ---------");
+        System.out.println(ansiText(">>>  true @|green;@@|@@||@ false = true  <<<").renderAnsi());
+        System.out.println(ansiText(">>> false @|bold @@|@@||@ true  = true  <<<").renderAnsi());
+        System.out.println(ansiText(">>> @|inverse;false @|yellow;@@|@@||@ false = false|@ <<<").renderAnsi());
+        System.out.println(ansiText(">>> 123 @|red,bold;@@||@ 456 = 507 <<<").renderAnsi());
+        System.out.println(ansiText(">>> 234 @|^blue,bold @@||@ 567 = 767 <<<").renderAnsi());
+        System.out.println(ansiText(">>> @|bg(white);  0 @|bold,yellow;@@||@ 345 = 345|@ <<<").renderAnsi());
+
         assertThat(ansiText(">>> @|| <<<").content()).isEqualTo(">>> @| <<<");
         assertThat(ansiText(">>> ||@ <<<").content()).isEqualTo(">>> |@ <<<");
         assertThat(ansiText(">>> @||la-la-la <<<").content()).isEqualTo(">>> @|la-la-la <<<");
@@ -51,6 +69,8 @@ public class AnsiEscSeqTest {
         assertThat(ansiText(">>> @|red;@||la-la-la|@ <<<").content()).isEqualTo(">>> @|la-la-la <<<");
         assertThat(ansiText(">>> @|blue;la-la-la||@|@ <<<").content()).isEqualTo(">>> la-la-la|@ <<<");
         assertThat(ansiText(">>> @|magenta;@||la-la-la||@|@ <<<").content()).isEqualTo(">>> @|la-la-la|@ <<<");
+
+        // TODO: add assertions about escaping the vertical line
     }
 
     @ParameterizedTest(name = "[{index}] {1}")
