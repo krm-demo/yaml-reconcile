@@ -1,6 +1,8 @@
 package org.krmdemo.yaml.reconcile.ansi;
 
 import java.util.*;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.lang.System.lineSeparator;
@@ -10,22 +12,25 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiSize.max;
 import static org.krmdemo.yaml.reconcile.ansi.AnsiStyle.emptyStyle;
+import static org.krmdemo.yaml.reconcile.ansi.LayoutBuilder.BuildContext.defaultContext;
 
 /**
  * This class tiles the sequence of {@link AnsiBlock} either horizontally or vertically
  * according to alignment and surround them with borders (described by predefined {@link AnsiBorder.Kind}.
  */
-public abstract class Layout implements AnsiSize, AnsiStyle.Holder, AnsiLine.Provider, Renderable {
+public abstract class Layout implements LayoutBuilder, AnsiSize, AnsiStyle.Holder, AnsiLine.Provider, Renderable {
 
-    protected Layout parent = null;
+    protected Supplier<Layout> parent = NO_PARENT;
     protected AnsiStyle style = emptyStyle();
 
-    protected AnsiBorder border = AnsiBorder.NONE;
-    protected char paddingChar = ' ';
+    @Override
+    public Layout build() {
+        return this;
+    }
 
     @Override
     public Optional<AnsiStyle.Holder> parent() {
-        return Optional.ofNullable(parent);
+        return Optional.ofNullable(parent.get());
     }
 
     @Override
@@ -33,17 +38,7 @@ public abstract class Layout implements AnsiSize, AnsiStyle.Holder, AnsiLine.Pro
         return Optional.of(style);
     }
 
-    public AnsiBorder border() {
-        return border;
-    }
-
-    public char paddingChar() {
-        return paddingChar;
-    }
-
     public abstract List<AnsiLine> layoutRowAt(int rowNum);
-
-    public abstract int childCount();
 
     @Override
     public int linesCount() {
@@ -55,44 +50,19 @@ public abstract class Layout implements AnsiSize, AnsiStyle.Holder, AnsiLine.Pro
         return width();
     }
 
-    public Layout topFrame() {
-        if (width() <= 0 || border().borderWidth() == 0) {
-            return emptyLayout();
-        } else {
-            return border().topBar(width());
-        }
-    }
-
-    public Layout bottomFrame() {
-        if (width() <= 0 || border().borderWidth() == 0) {
-            return emptyLayout();
-        } else {
-            return border().bottomBar(width());
-        }
-    }
-
-    public Layout leftFrame() {
-        if (height() <= 0 || border().borderWidth() == 0) {
-            return emptyLayout();
-        } else {
-            return border().leftBar(height());
-        }
-    }
-
-    public Layout rightFrame() {
-        if (height() <= 0 || border().borderWidth() == 0) {
-            return emptyLayout();
-        } else {
-            return border().rightBar(height());
-        }
-    }
-
     @Override
     public AnsiLine lineAt(int lineNum) {
         List<AnsiLine> row = layoutRowAt(lineNum);
 //        System.out.println("lineAt(" + lineNum + ") contains " + row.size() + " lines:");
 //        row.forEach(System.out::println);
         return AnsiLine.create(row.stream().flatMap(AnsiLine::spans));
+    }
+
+    /**
+     * @return sequence of ansi-styles that open each span
+     */
+    public Stream<AnsiStyle> spanStylesOpen() {
+        return lines().flatMap(AnsiLine::spans).map(AnsiSpan::styleOpen);
     }
 
     @Override
@@ -111,7 +81,6 @@ public abstract class Layout implements AnsiSize, AnsiStyle.Holder, AnsiLine.Pro
     }
 
     private final static Layout LAYOUT_EMPTY = new Layout() {
-        @Override public int childCount() { return 0; }
         @Override public int height() { return 0; }
         @Override public int width() { return 0; }
         @Override public List<AnsiLine> layoutRowAt(int rowNum) { return emptyList(); }
@@ -123,26 +92,150 @@ public abstract class Layout implements AnsiSize, AnsiStyle.Holder, AnsiLine.Pro
     }
 
     static class Blank extends Layout {
-        protected int height;
-        protected int width;
+        private final AnsiLine blankLine;
+        private final List<AnsiLine> blankRow;
+        private final int height;
+        private final int width;
 
-        Blank(int height, int width) {
+        Blank(BuildContext ctx, AnsiStyle style, int height, int width) {
             if (height <= 0 || width <= 0) {
                 throw new IllegalArgumentException("Attempt to create an empty blank layout");
             }
+            this.parent = ctx.parentLayout();
+            this.style = style;
+            this.blankLine = AnsiLine.blankLine(this, width, ctx.paddingChar());
+            this.blankRow = singletonList(this.blankLine);
             this.height = height;
             this.width = width;
         }
 
-        Blank() {
-            this.height = 0;
-            this.width = 0;
+        @Override
+        public int height() {
+            return this.height;
         }
 
         @Override
-        public int childCount() {
-            return 1;
+        public int width() {
+            return this.width;
         }
+
+        @Override
+        public List<AnsiLine> layoutRowAt(int rowNum) {
+            return this.blankRow;
+        }
+
+        protected String dumpName() {
+            return this.getClass().getSimpleName();
+        }
+
+        @Override
+        public String dump() {
+            return format("%s(height:%d;width:%d)", dumpName(), height(), width());
+        }
+    }
+
+    public static Layout blank(BuildContext ctx, int height, int width) {
+        return blank(ctx, emptyStyle(), height, width);
+    }
+
+    public static Layout blank(BuildContext ctx, AnsiStyle style, int height, int width) {
+        if (height <= 0 || width <= 0) {
+            return LAYOUT_EMPTY;
+        } else {
+            return new Blank(ctx, style, height, width);
+        }
+    }
+
+    static class Symbol extends Blank {
+        private final char symbol;
+        private final String dumpName;
+        Symbol(BuildContext ctx, char symbol) {
+            this(ctx, symbol, "Symbol");
+        }
+        Symbol(BuildContext ctx, char symbol, String dumpName) {
+            super(ctx.withPaddingChar(symbol), emptyStyle(), 1, 1);  // <-- TODO: maybe empty-style is not correct
+            this.symbol = symbol;
+            this.dumpName = dumpName;
+        }
+        @Override
+        protected String dumpName() {
+            return this.dumpName;
+        }
+        @Override
+        public String dump() {
+            return format("%s('%s')", dumpName(), this.symbol);
+        }
+    }
+
+    public static Layout symbol(BuildContext ctx, char symbol) {
+        return new Symbol(ctx, symbol);
+    }
+
+    public static Layout symbol(BuildContext ctx, char symbol, String dumpName) {
+        return new Symbol(ctx, symbol, dumpName);
+    }
+
+    static class HorizontalBar extends Blank {
+        private final char symbol;
+        private final String dumpName;
+        HorizontalBar(BuildContext ctx, int width, char symbol) {
+            this(ctx, width, symbol, "HorizontalBar");
+        }
+        HorizontalBar(BuildContext ctx, int width, char symbol, String dumpName) {
+            super(ctx.withPaddingChar(symbol), emptyStyle(), 1, width);  // <-- TODO: maybe empty-style is not correct
+            this.symbol = symbol;
+            this.dumpName = dumpName;
+        }
+        @Override
+        protected String dumpName() {
+            return this.dumpName;
+        }
+        @Override
+        public String dump() {
+            return format("%s(w:%d'%s')", dumpName(), width(), this.symbol);
+        }
+    }
+
+    public static Layout horizontalBar(BuildContext ctx, int width, char symbol) {
+        return width <= 0 ? LAYOUT_EMPTY : new HorizontalBar(ctx, width, symbol);
+    }
+
+    public static Layout horizontalBar(BuildContext ctx, int width, char symbol, String dumpName) {
+        return width <= 0 ? LAYOUT_EMPTY : new HorizontalBar(ctx, width, symbol, dumpName);
+    }
+
+    static class VerticalBar extends Blank {
+        private final char symbol;
+        private final String dumpName;
+        VerticalBar(BuildContext ctx, int height, char symbol) {
+            this(ctx, height, symbol, "VerticalBar");
+        }
+        VerticalBar(BuildContext ctx, int height, char symbol, String dumpName) {
+            super(ctx.withPaddingChar(symbol), emptyStyle(), height, 1);  // <-- TODO: maybe empty-style is not correct
+            this.symbol = symbol;
+            this.dumpName = dumpName;
+        }
+        @Override
+        protected String dumpName() {
+            return this.dumpName;
+        }
+        @Override
+        public String dump() {
+            return format("%s(h:%d'%s')", dumpName(), height(), this.symbol);
+        }
+    }
+
+    public static Layout verticalBar(BuildContext ctx, int height, char symbol) {
+        return height <= 0 ? LAYOUT_EMPTY : new VerticalBar(ctx, height, symbol);
+    }
+
+    public static Layout verticalBar(BuildContext ctx, int height, char symbol, String dumpName) {
+        return height <= 0 ? LAYOUT_EMPTY : new VerticalBar(ctx, height, symbol, dumpName);
+    }
+
+    abstract static class Composite extends Layout {
+        protected int height;
+        protected int width;
 
         @Override
         public int height() {
@@ -153,47 +246,20 @@ public abstract class Layout implements AnsiSize, AnsiStyle.Holder, AnsiLine.Pro
         public int width() {
             return width;
         }
-
-        @Override
-        public List<AnsiLine> layoutRowAt(int rowNum) {
-            return singletonList(AnsiLine.blankLine(this, width(), paddingChar()));
-        }
-
-        @Override
-        public String dump() {
-            return format("Blank(height:%d;width:%d)", height(), width());
-        }
     }
 
-    public static Layout blank(int height, int width) {
-        if (height <= 0 || width <= 0) {
-            return LAYOUT_EMPTY;
-        } else {
-            return new Blank(height, width);
-        }
-    }
-
-    public static Layout horizontalBar(int width, char paddingChar) {
-        if (width <= 0) {
-            return LAYOUT_EMPTY;
-        } else {
-            Layout bar = new Blank(1, width);
-            bar.paddingChar = paddingChar;
-            return bar;
-        }
-    }
-
-    private static class Horizontal extends Blank {
+    static class Horizontal extends Composite {
         private final SortedMap<Integer,Layout> childrenByPos = new TreeMap<>();
 
-        private Horizontal(Layout... childrenArr) {
-            this(asList(childrenArr));
+        Horizontal(BuildContext ctx, Layout... childrenArr) {
+            this(ctx, asList(childrenArr));
         }
 
-        private Horizontal(List<Layout> children) {
+        Horizontal(BuildContext ctx, List<Layout> children) {
             if (children.isEmpty()) {
                 throw new IllegalArgumentException("Attempt to create an empty horizontal layout");
             }
+            this.parent = ctx.parentLayout();
             int maxHeight = 0;
             int totalWidth = 0;
             for (Layout child : children) {
@@ -202,10 +268,9 @@ public abstract class Layout implements AnsiSize, AnsiStyle.Holder, AnsiLine.Pro
                     maxHeight = child.height();
                 }
                 this.childrenByPos.put(totalWidth - 1, child);
-                child.parent = this;
             }
             this.height = maxHeight;
-            this.width = totalWidth;  // <-- TODO: internal border width is not counted yet
+            this.width = totalWidth;
         }
 
         @Override
@@ -218,21 +283,22 @@ public abstract class Layout implements AnsiSize, AnsiStyle.Holder, AnsiLine.Pro
 
         @Override
         public String dump() {
-            return format("Horizontal(height:%d;width:%d; %d children)", height(), width(), childCount());
+            return format("Horizontal(height:%d;width:%d; %d children)", height(), width(), childrenByPos.size());
         }
     }
 
-    private static class Vertical extends Blank {
+    static class Vertical extends Composite {
         private final SortedMap<Integer,Layout> childrenByRow = new TreeMap<>();
 
-        private Vertical(Layout... childrenArr) {
-            this(asList(childrenArr));
+        Vertical(BuildContext ctx, Layout... childrenArr) {
+            this(ctx, asList(childrenArr));
         }
 
-        private Vertical(List<Layout> children) {
+        Vertical(BuildContext ctx, List<Layout> children) {
             if (children.isEmpty()) {
                 throw new IllegalArgumentException("Attempt to create an empty vertical layout");
             }
+            this.parent = ctx.parentLayout();
             int totalHeight = 0;
             int maxWidth = 0;
             for (Layout child : children) {
@@ -241,15 +307,9 @@ public abstract class Layout implements AnsiSize, AnsiStyle.Holder, AnsiLine.Pro
                     maxWidth = child.width();
                 }
                 this.childrenByRow.put(totalHeight - 1, child);
-                child.parent = this;
             }
-            this.height = totalHeight; // <-- TODO: internal border height is not counted yet
+            this.height = totalHeight;
             this.width = maxWidth;
-        }
-
-        @Override
-        public int childCount() {
-            return childrenByRow.size();
         }
 
         public List<AnsiLine> layoutRowAt(int rowNum) {
@@ -268,73 +328,7 @@ public abstract class Layout implements AnsiSize, AnsiStyle.Holder, AnsiLine.Pro
 
         @Override
         public String dump() {
-            return format("Vertical(height:%d;width:%d; %d children)", height(), width(), childCount());
+            return format("Vertical(height:%d;width:%d; %d children)", height(), width(), childrenByRow.size());
         }
-    }
-
-    public static Layout alignHorz(Layout layout, AlignHorizontal alignment, int targetWidth) {
-        if (layout.width() >= targetWidth) {
-            return layout;
-        }
-        int blankTotal = targetWidth - layout.width();
-        int blankLeft = blankTotal / 2; // <-- it could be zero, if `blankTotal` equals to `1`
-        int blankRight = blankTotal - blankLeft;
-        if (alignment == AlignHorizontal.LEFT) {
-            return new Horizontal(layout, blank(layout.height(), blankTotal));
-        } else if (alignment == AlignHorizontal.RIGHT || targetWidth == layout.width() + 1) {
-            return new Horizontal(blank(layout.height(), blankTotal), layout);
-        } else { // it implies that alignment is AlignHorizontal.CENTER and both parts are not empty
-            return new Horizontal(blank(layout.height(), blankLeft), layout, blank(layout.height(), blankRight));
-        }
-    }
-
-    public static Layout alignVert(Layout layout, AlignVertical alignment, int targetHeight) {
-        if (layout.height() >= targetHeight) {
-            return layout;
-        }
-        int blankTotal = targetHeight - layout.height();
-        int blankTop = blankTotal / 2; // <-- it could be zero, if `blankTotal` equals to `1`
-        int blankBottom = blankTotal - blankTop;
-        if (alignment == AlignVertical.TOP) {
-            return new Vertical(layout, blank(blankTotal, layout.width()));
-        } else if (alignment == AlignVertical.BOTTOM || blankTop == 0) {
-            return new Vertical(blank(blankTotal, layout.width()), layout);
-        } else { // it implies that alignment is AlignVertical.MIDDLE and both parts are not empty
-            return new Vertical(blank(blankTop, layout.width()), layout, blank(blankBottom, layout.width()));
-        }
-    }
-
-    public static Layout horizontal(AlignVertical alignment, Layout... childrenArr) {
-        return horizontal(alignment, asList(childrenArr));
-    }
-
-    public static Layout horizontal(AlignVertical alignment, List<Layout> children) {
-        int maxHeight = max(AnsiSize::height, children);
-        if (maxHeight <= 0) {
-            return LAYOUT_EMPTY;
-        }
-        return new Horizontal(
-            children.stream()
-                .filter(AnsiSize::isNotEmpty)
-                .map(child -> alignVert(child, alignment, maxHeight))
-                .toList()
-        );
-    }
-
-    public static Layout vertical(AlignHorizontal alignment, Layout... childrenArr) {
-        return vertical(alignment, asList(childrenArr));
-    }
-
-    public static Layout vertical(AlignHorizontal alignment, List<Layout> children) {
-        int maxWidth = max(AnsiSize::width, children);
-        if (maxWidth <= 0) {
-            return LAYOUT_EMPTY;
-        }
-        return new Vertical(
-            children.stream()
-                .filter(AnsiSize::isNotEmpty)
-                .map(child -> alignHorz(child, alignment, maxWidth))
-                .toList()
-        );
     }
 }

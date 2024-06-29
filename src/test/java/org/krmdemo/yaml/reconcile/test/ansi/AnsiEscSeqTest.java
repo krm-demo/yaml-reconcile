@@ -34,7 +34,6 @@ public class AnsiEscSeqTest {
         System.out.println(ansiText(">>> @||la-la-la||@ <<<").renderAnsi());
 
         System.out.println("-------- ansi-styles (some foreground colors): ---------");
-        System.out.println();
         System.out.println(ansiText(">>> @|red;@|||@ <<<").renderAnsi());
         System.out.println(ansiText(">>> @|blue;||@|@ <<<").renderAnsi());
         System.out.println(ansiText(">>> @|red;@||la-la-la|@ <<<").renderAnsi());

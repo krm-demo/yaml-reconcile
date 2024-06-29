@@ -109,7 +109,7 @@ public class AnsiText implements AnsiLine.Provider, Renderable {
         return AnsiBlock.builder().ansiText(this);
     }
 
-    public AnsiBlock blocked() {
+    public Layout blocked() {
         return blockBuilder().build();
     }
 
