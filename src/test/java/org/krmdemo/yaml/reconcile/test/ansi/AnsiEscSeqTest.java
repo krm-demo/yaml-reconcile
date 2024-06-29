@@ -40,23 +40,29 @@ public class AnsiEscSeqTest {
         System.out.println(ansiText(">>> @|blue;la-la-la||@|@ <<<").renderAnsi());
         System.out.println(ansiText(">>> @|magenta;@||la-la-la||@|@ <<<").renderAnsi());
 
-        System.out.println("-------- ansi-styles (double vertical line character): ---------");
+        System.out.println("-------- ansi-styles (single and double '|'-chars): ---------");
         System.out.println(ansiText(">>>  true @@|@@| false = true  <<<").renderAnsi());
         System.out.println(ansiText(">>> false || true  = true  <<<").renderAnsi());
         System.out.println(ansiText(">>> false @@|| false = false <<<").renderAnsi());
-
-        System.out.println("-------- ansi-styles (single vertical line character): ---------");
         System.out.println(ansiText(">>> 123 @@| 456 = 507 <<<").renderAnsi());
         System.out.println(ansiText(">>> 234 | 567 = 767 <<<").renderAnsi());
         System.out.println(ansiText(">>>   0 \u007C 345 = 345 <<<").renderAnsi());  // <-- be careful with that!
 
-        System.out.println("-------- ansi-styles (vertical lines with some color): ---------");
+        System.out.println("-------- ansi-styles ('|'-chars with colors): ---------------");
         System.out.println(ansiText(">>>  true @|green;@@|@@||@ false = true  <<<").renderAnsi());
         System.out.println(ansiText(">>> false @|bold @@|@@||@ true  = true  <<<").renderAnsi());
         System.out.println(ansiText(">>> @|inverse;false @|yellow;@@|@@||@ false = false|@ <<<").renderAnsi());
         System.out.println(ansiText(">>> 123 @|red,bold;@@||@ 456 = 507 <<<").renderAnsi());
         System.out.println(ansiText(">>> 234 @|^blue,bold @@||@ 567 = 767 <<<").renderAnsi());
         System.out.println(ansiText(">>> @|bg(white);  0 @|bold,yellow;@@||@ 345 = 345|@ <<<").renderAnsi());
+
+        System.out.println("-------- ansi-styles (single and double '@'-chars): ---------");
+        System.out.println(ansiText(">>> @ <<<").renderAnsi());
+        System.out.println(ansiText(">>> @@ <<<").renderAnsi());
+        System.out.println(ansiText(">>> @@@ <<<").renderAnsi());
+        System.out.println(ansiText(">>> @@@@ <<<").renderAnsi());
+        System.out.println(ansiText(">>> @|red;@@@|@ <<<").renderAnsi());
+        System.out.println(ansiText(">>> @|yellow,bold;@@@@@@|@ <<<").renderAnsi());
 
         assertThat(ansiText(">>> @|| <<<").content()).isEqualTo(">>> @| <<<");
         assertThat(ansiText(">>> ||@ <<<").content()).isEqualTo(">>> |@ <<<");

@@ -11,7 +11,7 @@ line : (span | styleOpen | styleClose | escSeq)*;
 
 // ------ dividing the line on spans, ansi-styles and escape-sequences: -------
 
-span : (CHAR | AT_PIPE_PIPE | PIPE_PIPE_AT | AT_AT_PIPE)+;
+span : (CHAR | AT_PIPE_PIPE | PIPE_PIPE_AT | AT_AT_PIPE | AT_AT_AT)+;
 styleOpen : STYLE_OPEN styleAttr (CHAR_COMMA styleAttr)* (CHAR_SEMICOLON | CHAR_WS)?;
 styleClose : STYLE_CLOSE;
 

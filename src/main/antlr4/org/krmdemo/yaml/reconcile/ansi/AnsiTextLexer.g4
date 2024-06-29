@@ -43,6 +43,7 @@ STYLE_CLOSE : '|@';
 AT_PIPE_PIPE : '@||' { setText("@|"); };
 PIPE_PIPE_AT : '||@' { setText("|@"); };
 AT_AT_PIPE   : '@@|' { setText("|"); };
+AT_AT_AT     : '@@@' { setText("@"); };
 
 ESC_SEQ_OPEN : '\u001B[' -> pushMode(ESC_SEQ_MODE);
 
